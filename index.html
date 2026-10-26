@@ -1,210 +1,1234 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#e8eaee">
+  <title>Calibre — Calculator</title>
   <style>
-    * {
+    /* ============================================================
+       Design tokens
+       ============================================================ */
+    :root {
+      color-scheme: light;
+
+      --bg: #e8eaee;
+      --surface: #ffffff;
+      --surface-2: #f3f4f7;
+      --surface-3: #e9ecf1;
+      --display-bg: #f7f8fa;
+
+      --text: #17191f;
+      --text-muted: #646c7a;
+      --text-subtle: #949ba7;
+
+      --border: #e1e4e9;
+      --border-strong: #d3d7df;
+
+      --accent: #2f5bd7;
+      --accent-strong: #2447a8;
+      --accent-soft: #eef3ff;
+      --accent-soft-hover: #e3ebff;
+
+      --danger: #b42318;
+      --danger-soft: #fff1f0;
+      --danger-soft-hover: #ffe4e1;
+
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 13px;
+      --radius-sm: 11px;
+
+      --shadow: 0 1px 2px rgba(23, 25, 31, 0.04),
+                0 24px 64px -20px rgba(23, 25, 31, 0.24);
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
+    }
+
+    /* ============================================================
+       Base
+       ============================================================ */
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
+      min-height: 100svh;
       display: grid;
       place-items: center;
-      background: #eef2ff;
-      font-family: Arial, sans-serif;
-    }
-
-    .calculator {
-      width: min(340px, 92vw);
-      padding: 24px;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px #00000015;
-    }
-
-    h1 {
-      text-align: center;
-      color: #273469;
-      font-size: 25px;
-    }
-
-    #display {
-      width: 100%;
-      height: 65px;
-      margin-bottom: 16px;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      text-align: right;
-      font-size: 28px;
-      background: #f8fafc;
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 9px;
+      overflow-x: hidden;
+      padding:
+        max(clamp(16px, 5vw, 48px), env(safe-area-inset-top))
+        max(clamp(16px, 5vw, 48px), env(safe-area-inset-right))
+        max(clamp(16px, 5vw, 48px), env(safe-area-inset-bottom))
+        max(clamp(16px, 5vw, 48px), env(safe-area-inset-left));
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
     button {
-      min-height: 55px;
-      border: none;
+      font-family: inherit;
+    }
+
+    /* ============================================================
+       App shell
+       ============================================================ */
+    .calculator {
+      width: min(100%, 420px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(14px, 3.5vw, 20px);
+      padding: clamp(16px, 4vw, 24px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 2px 2px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.94rem;
+      font-weight: 650;
+      letter-spacing: 0.09em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .brand .edition {
+      color: var(--text-subtle);
+      font-size: 0.66rem;
+      font-weight: 560;
+      letter-spacing: 0.12em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
       border-radius: 10px;
-      background: #e8ecf5;
-      font-size: 20px;
       cursor: pointer;
+      transition:
+        background-color 140ms ease,
+        border-color 140ms ease,
+        color 140ms ease,
+        transform 80ms ease;
     }
 
-    button:hover {
-      filter: brightness(0.95);
+    .icon-button svg {
+      width: 18px;
+      height: 18px;
     }
 
-    .operator {
-      background: #dbe4ff;
-      color: #273469;
+    .icon-button:active {
+      transform: translateY(1px);
     }
 
-    .clear {
-      background: #ffe0e0;
-      color: #a11;
+    .icon-button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
-    .equals {
-      background: #273469;
-      color: white;
+    .icon-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.38;
     }
 
-    .zero {
-      grid-column: span 2;
+    .icon-button.is-copied {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .icon-check {
+      display: none;
+    }
+
+    .icon-button.is-copied .icon-copy {
+      display: none;
+    }
+
+    .icon-button.is-copied .icon-check {
+      display: block;
+    }
+
+    /* ============================================================
+       Display
+       ============================================================ */
+    .display {
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: clamp(16px, 4vw, 20px);
+      background: var(--display-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .expression {
+      min-height: 18px;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      line-height: 1.3;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .result {
+      display: block;
+      min-height: 1.1em;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: clamp(2.4rem, 10vw, 3.5rem);
+      font-variant-numeric: tabular-nums;
+      font-weight: 620;
+      letter-spacing: -0.045em;
+      line-height: 1.05;
+      text-align: right;
+      white-space: nowrap;
+      transition:
+        color 140ms ease,
+        font-size 120ms ease;
+    }
+
+    .result[data-size="md"] {
+      font-size: clamp(2rem, 8vw, 2.9rem);
+    }
+
+    .result[data-size="sm"] {
+      font-size: clamp(1.6rem, 6.5vw, 2.25rem);
+    }
+
+    .result[data-size="xs"] {
+      font-size: clamp(1.2rem, 4.8vw, 1.75rem);
+    }
+
+    .result.is-error {
+      color: var(--danger);
+      font-size: clamp(1.8rem, 8vw, 2.8rem);
+    }
+
+    /* ============================================================
+       Keypad
+       ============================================================ */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(8px, 2.2vw, 12px);
+    }
+
+    .key {
+      min-height: clamp(52px, 12vw, 64px);
+      display: grid;
+      place-items: center;
+      padding: 0;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: clamp(1.1rem, 4.5vw, 1.35rem);
+      font-weight: 520;
+      line-height: 1;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease,
+        box-shadow 120ms ease,
+        transform 80ms ease;
+    }
+
+    .key:active {
+      transform: translateY(1px);
+    }
+
+    .key:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .key--utility {
+      color: var(--text-muted);
+      background: var(--surface-3);
+      font-size: clamp(0.95rem, 3.8vw, 1.08rem);
+      font-weight: 580;
+    }
+
+    .key--operator {
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-size: clamp(1.25rem, 5vw, 1.55rem);
+      font-weight: 560;
+    }
+
+    .key--operator[aria-pressed="true"] {
+      color: #ffffff;
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(47, 91, 215, 0.22);
+    }
+
+    .key--danger {
+      color: var(--danger);
+      background: var(--danger-soft);
+      font-size: clamp(0.9rem, 3.6vw, 1.02rem);
+      font-weight: 650;
+    }
+
+    .key--equals {
+      color: #ffffff;
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 8px 18px -10px rgba(47, 91, 215, 0.6);
+      font-size: clamp(1.35rem, 5vw, 1.65rem);
+      font-weight: 600;
+    }
+
+    .key--equals:active {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+    }
+
+    @media (hover: hover) {
+      .icon-button:hover {
+        color: var(--text);
+        background: var(--surface-2);
+      }
+
+      .icon-button.is-copied:hover {
+        color: var(--accent);
+        background: var(--accent-soft-hover);
+      }
+
+      .key:hover {
+        background: #eef0f4;
+        border-color: var(--border);
+      }
+
+      .key--utility:hover {
+        color: var(--text);
+        background: #e3e6ec;
+      }
+
+      .key--operator:hover {
+        background: var(--accent-soft-hover);
+      }
+
+      .key--operator[aria-pressed="true"]:hover {
+        background: var(--accent-strong);
+        border-color: var(--accent-strong);
+      }
+
+      .key--danger:hover {
+        color: var(--danger);
+        background: var(--danger-soft-hover);
+      }
+
+      .key--equals:hover {
+        background: var(--accent-strong);
+        border-color: var(--accent-strong);
+      }
+    }
+
+    /* ============================================================
+       Utilities & responsive refinements
+       ============================================================ */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 360px) {
+      .calculator {
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .display {
+        min-height: 112px;
+      }
+
+      .keypad {
+        gap: 8px;
+      }
+
+      .key {
+        min-height: 50px;
+        border-radius: 10px;
+      }
+    }
+
+    @media (max-height: 720px) {
+      body {
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+
+      .calculator {
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .display {
+        min-height: 112px;
+        padding: 14px 16px;
+      }
+
+      .key {
+        min-height: 48px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="calculator">
-    <h1>My Calculator</h1>
-    <input id="display" value="0" readonly aria-label="Calculator display">
+  <main class="calculator" aria-labelledby="app-title">
+    <header class="app-header">
+      <div class="brand">
+        <h1 id="app-title">Calibre</h1>
+        <span class="edition">Calculator</span>
+      </div>
 
-    <div class="buttons">
-      <button class="clear" onclick="clearAll()">AC</button>
-      <button onclick="removeLast()">DEL</button>
-      <button class="operator" onclick="choose('/')">÷</button>
-      <button class="operator" onclick="choose('*')">×</button>
+      <button
+        id="copyBtn"
+        class="icon-button"
+        type="button"
+        aria-label="Copy result"
+        title="Copy result"
+      >
+        <svg
+          class="icon-copy"
+          aria-hidden="true"
+          focusable="false"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
 
-      <button onclick="digit('7')">7</button>
-      <button onclick="digit('8')">8</button>
-      <button onclick="digit('9')">9</button>
-      <button class="operator" onclick="choose('-')">−</button>
+        <svg
+          class="icon-check"
+          aria-hidden="true"
+          focusable="false"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+      </button>
+    </header>
 
-      <button onclick="digit('4')">4</button>
-      <button onclick="digit('5')">5</button>
-      <button onclick="digit('6')">6</button>
-      <button class="operator" onclick="choose('+')">+</button>
+    <section class="display" aria-label="Calculator display">
+      <p class="expression" id="expression" aria-hidden="true"></p>
+      <output
+        class="result"
+        id="result"
+        aria-live="polite"
+        aria-atomic="true"
+      >0</output>
+    </section>
 
-      <button onclick="digit('1')">1</button>
-      <button onclick="digit('2')">2</button>
-      <button onclick="digit('3')">3</button>
-      <button class="equals" onclick="calculate()" style="grid-row: span 2">=</button>
+    <div class="keypad" id="keypad">
+      <button class="key key--danger" type="button" data-action="clear" aria-label="All clear">AC</button>
+      <button class="key key--utility" type="button" data-action="delete" aria-label="Delete last digit">DEL</button>
+      <button class="key key--utility" type="button" data-action="percent" aria-label="Percent">%</button>
+      <button
+        class="key key--operator"
+        type="button"
+        data-action="operator"
+        data-operator="/"
+        aria-label="Divide"
+        aria-pressed="false"
+      >÷</button>
 
-      <button class="zero" onclick="digit('0')">0</button>
-      <button onclick="digit('.')">.</button>
+      <button class="key" type="button" data-action="digit" data-digit="7">7</button>
+      <button class="key" type="button" data-action="digit" data-digit="8">8</button>
+      <button class="key" type="button" data-action="digit" data-digit="9">9</button>
+      <button
+        class="key key--operator"
+        type="button"
+        data-action="operator"
+        data-operator="*"
+        aria-label="Multiply"
+        aria-pressed="false"
+      >×</button>
+
+      <button class="key" type="button" data-action="digit" data-digit="4">4</button>
+      <button class="key" type="button" data-action="digit" data-digit="5">5</button>
+      <button class="key" type="button" data-action="digit" data-digit="6">6</button>
+      <button
+        class="key key--operator"
+        type="button"
+        data-action="operator"
+        data-operator="-"
+        aria-label="Subtract"
+        aria-pressed="false"
+      >−</button>
+
+      <button class="key" type="button" data-action="digit" data-digit="1">1</button>
+      <button class="key" type="button" data-action="digit" data-digit="2">2</button>
+      <button class="key" type="button" data-action="digit" data-digit="3">3</button>
+      <button
+        class="key key--operator"
+        type="button"
+        data-action="operator"
+        data-operator="+"
+        aria-label="Add"
+        aria-pressed="false"
+      >+</button>
+
+      <button class="key key--utility" type="button" data-action="sign" aria-label="Toggle sign">±</button>
+      <button class="key" type="button" data-action="digit" data-digit="0">0</button>
+      <button class="key" type="button" data-action="digit" data-digit="." aria-label="Decimal point">.</button>
+      <button class="key key--equals" type="button" data-action="equals" aria-label="Equals">=</button>
     </div>
+
+    <span class="sr-only" id="copyStatus" aria-live="polite"></span>
   </main>
 
   <script>
-    const display = document.getElementById('display');
+    (() => {
+      'use strict';
 
-    let current = '0';
-    let stored = null;
-    let operator = null;
-    let fresh = false;
+      /* ============================================================
+         Element references
+         ============================================================ */
+      const resultEl = document.getElementById('result');
+      const expressionEl = document.getElementById('expression');
+      const keypad = document.getElementById('keypad');
+      const copyBtn = document.getElementById('copyBtn');
+      const copyStatus = document.getElementById('copyStatus');
+      const operatorButtons = Array.from(
+        document.querySelectorAll('[data-action="operator"]')
+      );
 
-    function update() {
-      display.value = current;
-    }
+      /* ============================================================
+         Constants
+         ============================================================ */
+      const MAX_INPUT_DIGITS = 15;
+      const PRECISION = 15;
+      const COPY_FEEDBACK_MS = 1400;
 
-    function digit(value) {
-      if (current === 'Error') clearAll();
+      const SYMBOLS = Object.freeze({
+        '+': '+',
+        '-': '−',
+        '*': '×',
+        '/': '÷'
+      });
 
-      if (fresh) {
-        current = value === '.' ? '0.' : value;
-        fresh = false;
-      } else if (value === '.') {
-        if (!current.includes('.')) current += '.';
-      } else {
-        current = current === '0' ? value : current + value;
+      /* ============================================================
+         Calculator state
+         ============================================================ */
+      const state = {
+        current: '0',
+        accumulator: null,
+        operator: null,
+        overwrite: true,
+        operandEntered: false,
+        error: null,
+        repeatOperator: null,
+        repeatOperand: null,
+        lastResult: null,
+        lastExpression: ''
+      };
+
+      let copiedTimer = null;
+
+      /* ============================================================
+         State helpers
+         ============================================================ */
+      function resetState() {
+        state.current = '0';
+        state.accumulator = null;
+        state.operator = null;
+        state.overwrite = true;
+        state.operandEntered = false;
+        state.error = null;
+        state.repeatOperator = null;
+        state.repeatOperand = null;
+        state.lastResult = null;
+        state.lastExpression = '';
       }
 
-      update();
-    }
+      function setError(message) {
+        state.current = 'Error';
+        state.accumulator = null;
+        state.operator = null;
+        state.overwrite = true;
+        state.operandEntered = false;
+        state.error = message || 'Invalid calculation';
+        state.repeatOperator = null;
+        state.repeatOperand = null;
+        state.lastResult = null;
+        state.lastExpression = '';
+        render();
+      }
 
-    function choose(op) {
-      if (current === 'Error') return;
+      /* ============================================================
+         Number helpers
+         ============================================================ */
+      function normalize(value) {
+        if (!Number.isFinite(value)) {
+          return value;
+        }
 
-      if (operator && !fresh) calculate();
+        if (Object.is(value, -0)) {
+          return 0;
+        }
 
-      stored = Number(current);
-      operator = op;
-      fresh = true;
-    }
+        const rounded = Number(value.toPrecision(PRECISION));
+        return Object.is(rounded, -0) ? 0 : rounded;
+      }
 
-    function calculate() {
-      if (operator === null || stored === null) return;
+      function numberToString(value) {
+        if (Object.is(value, -0)) {
+          return '0';
+        }
+        return String(value);
+      }
 
-      const a = stored;
-      const b = Number(current);
-      let result;
+      function formatNumber(value) {
+        const stringValue = String(value);
 
-      switch (operator) {
-        case '+': result = a + b; break;
-        case '-': result = a - b; break;
-        case '*': result = a * b; break;
-        case '/':
-          if (b === 0) {
-            current = 'Error';
-            stored = null;
-            operator = null;
-            fresh = true;
-            update();
+        if (stringValue === 'Error') {
+          return stringValue;
+        }
+
+        if (/[eE]/.test(stringValue)) {
+          return stringValue;
+        }
+
+        let sign = '';
+        let unsigned = stringValue;
+
+        if (unsigned.startsWith('-')) {
+          sign = '-';
+          unsigned = unsigned.slice(1);
+        }
+
+        const parts = unsigned.split('.');
+        const integerPart = parts[0];
+        const decimalPart = parts.length > 1 ? parts[1] : null;
+
+        const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+        return sign + groupedInteger + (decimalPart !== null ? '.' + decimalPart : '');
+      }
+
+      function getDisplaySize(text) {
+        if (text.length > 17) return 'xs';
+        if (text.length > 13) return 'sm';
+        if (text.length > 9) return 'md';
+        return 'lg';
+      }
+
+      /* ============================================================
+         Calculation logic
+         ============================================================ */
+      function compute(a, b, operator) {
+        if (!Number.isFinite(a) || !Number.isFinite(b)) {
+          return { ok: false, reason: 'Invalid number' };
+        }
+
+        let rawResult;
+
+        switch (operator) {
+          case '+':
+            rawResult = a + b;
+            break;
+          case '-':
+            rawResult = a - b;
+            break;
+          case '*':
+            rawResult = a * b;
+            break;
+          case '/':
+            if (b === 0) {
+              return { ok: false, reason: 'Cannot divide by zero' };
+            }
+            rawResult = a / b;
+            break;
+          default:
+            return { ok: false, reason: 'Invalid operation' };
+        }
+
+        if (!Number.isFinite(rawResult)) {
+          return { ok: false, reason: 'Result is too large' };
+        }
+
+        return { ok: true, value: normalize(rawResult) };
+      }
+
+      /* ============================================================
+         Input actions
+         ============================================================ */
+      function inputDigit(value) {
+        if (state.error) {
+          resetState();
+        }
+
+        state.lastExpression = '';
+        state.repeatOperator = null;
+        state.repeatOperand = null;
+        state.lastResult = null;
+
+        if (state.overwrite) {
+          state.current = value === '.' ? '0.' : value;
+          state.overwrite = false;
+        } else if (value === '.') {
+          if (!state.current.includes('.')) {
+            state.current += '.';
+          }
+        } else {
+          if (state.current === '-0') {
+            state.current = '-' + value;
+          } else if (state.current === '0') {
+            state.current = value;
+          } else {
+            const digitCount = state.current.replace(/\D/g, '').length;
+
+            if (digitCount >= MAX_INPUT_DIGITS) {
+              return;
+            }
+
+            state.current += value;
+          }
+        }
+
+        state.operandEntered = true;
+        render();
+      }
+
+      function chooseOperator(operator) {
+        if (state.error) {
+          return;
+        }
+
+        state.lastExpression = '';
+        state.repeatOperator = null;
+        state.repeatOperand = null;
+        state.lastResult = null;
+
+        const currentValue = Number(state.current);
+
+        if (!Number.isFinite(currentValue)) {
+          setError('Invalid number');
+          return;
+        }
+
+        if (state.operator !== null && state.accumulator !== null) {
+          if (state.operandEntered) {
+            const result = compute(state.accumulator, currentValue, state.operator);
+
+            if (!result.ok) {
+              setError(result.reason);
+              return;
+            }
+
+            state.accumulator = result.value;
+            state.current = numberToString(result.value);
+            state.operandEntered = false;
+          }
+        } else {
+          state.accumulator = currentValue;
+        }
+
+        state.operator = operator;
+        state.overwrite = true;
+        state.operandEntered = false;
+
+        render();
+      }
+
+      function calculate() {
+        if (state.error) {
+          return;
+        }
+
+        state.lastExpression = '';
+
+        if (state.operator !== null && state.accumulator !== null) {
+          const a = state.accumulator;
+          const b = Number(state.current);
+          const operator = state.operator;
+          const result = compute(a, b, operator);
+
+          if (!result.ok) {
+            setError(result.reason);
             return;
           }
-          result = a / b;
-          break;
+
+          state.lastExpression =
+            formatNumber(numberToString(a)) +
+            ' ' +
+            SYMBOLS[operator] +
+            ' ' +
+            formatNumber(numberToString(b)) +
+            ' =';
+
+          state.current = numberToString(result.value);
+          state.lastResult = result.value;
+          state.repeatOperator = operator;
+          state.repeatOperand = b;
+          state.accumulator = null;
+          state.operator = null;
+          state.overwrite = true;
+          state.operandEntered = false;
+
+          render();
+          return;
+        }
+
+        if (
+          state.repeatOperator !== null &&
+          state.lastResult !== null &&
+          state.overwrite
+        ) {
+          const a = state.lastResult;
+          const b = state.repeatOperand;
+          const operator = state.repeatOperator;
+          const result = compute(a, b, operator);
+
+          if (!result.ok) {
+            setError(result.reason);
+            return;
+          }
+
+          state.lastExpression =
+            formatNumber(numberToString(a)) +
+            ' ' +
+            SYMBOLS[operator] +
+            ' ' +
+            formatNumber(numberToString(b)) +
+            ' =';
+
+          state.current = numberToString(result.value);
+          state.lastResult = result.value;
+          state.overwrite = true;
+          state.operandEntered = false;
+
+          render();
+        }
       }
 
-      current = String(Number(result.toPrecision(10)));
-      stored = null;
-      operator = null;
-      fresh = true;
-      update();
-    }
-
-    function clearAll() {
-      current = '0';
-      stored = null;
-      operator = null;
-      fresh = false;
-      update();
-    }
-
-    function removeLast() {
-      if (fresh || current === 'Error') {
-        current = '0';
-        fresh = false;
-      } else {
-        current = current.length > 1
-          ? current.slice(0, -1)
-          : '0';
-
-        if (current === '-') current = '0';
+      function clearAll() {
+        resetState();
+        render();
       }
 
-      update();
-    }
+      function removeLast() {
+        if (state.error) {
+          clearAll();
+          return;
+        }
+
+        state.lastExpression = '';
+        state.repeatOperator = null;
+        state.repeatOperand = null;
+        state.lastResult = null;
+
+        if (state.overwrite) {
+          state.current = '0';
+          state.overwrite = false;
+          state.operandEntered = state.operator !== null;
+        } else {
+          let nextValue = state.current.slice(0, -1);
+
+          if (nextValue === '' || nextValue === '-') {
+            nextValue = '0';
+          }
+
+          state.current = nextValue;
+          state.operandEntered = true;
+        }
+
+        render();
+      }
+
+      function percent() {
+        if (state.error) {
+          return;
+        }
+
+        // Percent only applies to an entered right-hand operand while pending.
+        if (state.operator !== null && !state.operandEntered) {
+          return;
+        }
+
+        const currentValue = Number(state.current);
+
+        if (!Number.isFinite(currentValue)) {
+          setError('Invalid number');
+          return;
+        }
+
+        let value;
+
+        if (state.operator !== null && state.accumulator !== null) {
+          if (state.operator === '+' || state.operator === '-') {
+            value = state.accumulator * (currentValue / 100);
+          } else {
+            value = currentValue / 100;
+          }
+        } else {
+          value = currentValue / 100;
+        }
+
+        state.current = numberToString(normalize(value));
+        state.overwrite = true;
+        state.operandEntered = state.operator !== null;
+        state.lastExpression = '';
+        state.repeatOperator = null;
+        state.repeatOperand = null;
+        state.lastResult = null;
+
+        render();
+      }
+
+      function toggleSign() {
+        if (state.error) {
+          return;
+        }
+
+        state.lastExpression = '';
+        state.repeatOperator = null;
+        state.repeatOperand = null;
+        state.lastResult = null;
+
+        // Awaiting a right-hand operand: begin a negative entry.
+        if (state.overwrite && state.operator !== null && !state.operandEntered) {
+          state.current = '-0';
+          state.overwrite = false;
+          state.operandEntered = true;
+          render();
+          return;
+        }
+
+        if (state.current !== '0') {
+          state.current = state.current.startsWith('-')
+            ? state.current.slice(1)
+            : '-' + state.current;
+        }
+
+        if (state.operator === null) {
+          // Keep overwrite semantics: after a result, the next digit replaces it.
+        } else {
+          state.overwrite = false;
+          state.operandEntered = true;
+        }
+
+        render();
+      }
+
+      /* ============================================================
+         Rendering
+         ============================================================ */
+      function render() {
+        const isError = Boolean(state.error);
+        const mainText = isError ? 'Error' : formatNumber(state.current);
+
+        resultEl.textContent = mainText;
+        resultEl.classList.toggle('is-error', isError);
+        resultEl.dataset.size = getDisplaySize(mainText);
+
+        let expressionText = '';
+
+        if (isError) {
+          expressionText = state.error;
+        } else if (state.operator !== null && state.accumulator !== null) {
+          const left = formatNumber(numberToString(state.accumulator));
+          const right = state.operandEntered
+            ? ' ' + formatNumber(state.current)
+            : '';
+
+          expressionText = left + ' ' + SYMBOLS[state.operator] + right;
+        } else {
+          expressionText = state.lastExpression;
+        }
+
+        expressionEl.textContent = expressionText;
+
+        operatorButtons.forEach((button) => {
+          const isSelected =
+            !isError && state.operator === button.dataset.operator;
+
+          button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        });
+
+        copyBtn.disabled = isError;
+      }
+
+      /* ============================================================
+         Copy result
+         ============================================================ */
+      function indicateCopied() {
+        copyBtn.classList.add('is-copied');
+        copyBtn.setAttribute('aria-label', 'Copied');
+        copyBtn.title = 'Copied';
+        copyStatus.textContent = 'Result copied to clipboard';
+
+        window.clearTimeout(copiedTimer);
+
+        copiedTimer = window.setTimeout(() => {
+          copyBtn.classList.remove('is-copied');
+          copyBtn.setAttribute('aria-label', 'Copy result');
+          copyBtn.title = 'Copy result';
+          copyStatus.textContent = '';
+        }, COPY_FEEDBACK_MS);
+      }
+
+      async function copyResult() {
+        if (state.error) {
+          return;
+        }
+
+        const text = state.current;
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-1000px';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            const successful = document.execCommand('copy');
+            textarea.remove();
+
+            if (!successful) {
+              throw new Error('Copy command failed');
+            }
+          }
+
+          indicateCopied();
+        } catch (error) {
+          copyStatus.textContent = 'Copy failed';
+        }
+      }
+
+      /* ============================================================
+         Events
+         ============================================================ */
+      keypad.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+
+        if (!button) {
+          return;
+        }
+
+        const action = button.dataset.action;
+
+        switch (action) {
+          case 'digit':
+            inputDigit(button.dataset.digit);
+            break;
+          case 'operator':
+            chooseOperator(button.dataset.operator);
+            break;
+          case 'equals':
+            calculate();
+            break;
+          case 'clear':
+            clearAll();
+            break;
+          case 'delete':
+            removeLast();
+            break;
+          case 'percent':
+            percent();
+            break;
+          case 'sign':
+            toggleSign();
+            break;
+          default:
+            break;
+        }
+      });
+
+      copyBtn.addEventListener('click', copyResult);
+
+      // Blur mouse-activated buttons so global Enter/Backspace shortcuts work
+      // immediately after clicking, without breaking keyboard activation.
+      document.addEventListener('pointerup', (event) => {
+        if (event.pointerType !== 'mouse') {
+          return;
+        }
+
+        const target = event.target;
+
+        if (target instanceof Element) {
+          const button = target.closest('button');
+
+          if (button) {
+            button.blur();
+          }
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.defaultPrevented) {
+          return;
+        }
+
+        if (event.altKey || event.ctrlKey || event.metaKey) {
+          return;
+        }
+
+        const key = event.key;
+        const target = event.target;
+
+        // Let focused buttons handle Enter/Space natively.
+        if (
+          target instanceof Element &&
+          target.closest('button') &&
+          (key === 'Enter' || key === ' ')
+        ) {
+          return;
+        }
+
+        if (key >= '0' && key <= '9') {
+          event.preventDefault();
+          inputDigit(key);
+          return;
+        }
+
+        if (key === '.' || key === ',') {
+          event.preventDefault();
+          inputDigit('.');
+          return;
+        }
+
+        switch (key) {
+          case '+':
+            event.preventDefault();
+            chooseOperator('+');
+            break;
+          case '-':
+            event.preventDefault();
+            chooseOperator('-');
+            break;
+          case '*':
+          case 'x':
+          case 'X':
+            event.preventDefault();
+            chooseOperator('*');
+            break;
+          case '/':
+            event.preventDefault();
+            chooseOperator('/');
+            break;
+          case 'Enter':
+          case '=':
+            event.preventDefault();
+            calculate();
+            break;
+          case 'Backspace':
+            event.preventDefault();
+            removeLast();
+            break;
+          case 'Delete':
+          case 'Escape':
+            event.preventDefault();
+            clearAll();
+            break;
+          case '%':
+            event.preventDefault();
+            percent();
+            break;
+          case 'c':
+          case 'C':
+            event.preventDefault();
+            clearAll();
+            break;
+          default:
+            break;
+        }
+      });
+
+      /* ============================================================
+         Initial render
+         ============================================================ */
+      render();
+    })();
   </script>
 </body>
 </html>
