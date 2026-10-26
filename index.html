@@ -42,6 +42,14 @@
       --shadow: 0 1px 2px rgba(23, 25, 31, 0.04),
                 0 24px 64px -20px rgba(23, 25, 31, 0.24);
 
+      /* ~1s intentional mode transition */
+      --mode-duration: 900ms;
+      --mode-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+      /* Snappier drawer transition */
+      --drawer-duration: 380ms;
+      --drawer-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         Helvetica, Arial, sans-serif;
     }
@@ -64,8 +72,7 @@
       margin: 0;
       min-height: 100vh;
       min-height: 100svh;
-      display: grid;
-      place-items: center;
+      display: flex;
       overflow-x: hidden;
       overflow-y: auto;
       padding:
@@ -88,21 +95,18 @@
        App shell
        ============================================================ */
     .calculator {
+      position: relative;
+      margin: auto;
       width: min(100%, 420px);
       display: flex;
       flex-direction: column;
-      gap: clamp(14px, 3.5vw, 20px);
+      gap: clamp(12px, 3vw, 18px);
       padding: clamp(16px, 4vw, 24px);
+      overflow: hidden;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
-      transition: gap 180ms ease;
-    }
-
-    .calculator.scientific {
-      width: min(100%, 440px);
-      gap: clamp(10px, 3vw, 16px);
     }
 
     /* ============================================================
@@ -112,14 +116,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       padding: 2px 2px 0;
     }
 
     .brand {
       display: flex;
       align-items: baseline;
-      gap: 8px;
       min-width: 0;
     }
 
@@ -133,20 +136,10 @@
       text-transform: uppercase;
     }
 
-    .brand .edition {
-      display: none;
-      color: var(--text-subtle);
-      font-size: 0.66rem;
-      font-weight: 560;
-      letter-spacing: 0.12em;
-      line-height: 1;
-      text-transform: uppercase;
-    }
-
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     /* ---- Mode toggle ---- */
@@ -170,9 +163,9 @@
       cursor: pointer;
       line-height: 1.3;
       transition:
-        background-color 140ms ease,
-        color 140ms ease,
-        box-shadow 140ms ease;
+        background-color 160ms ease,
+        color 160ms ease,
+        box-shadow 160ms ease;
     }
 
     .mode-btn:focus-visible {
@@ -192,7 +185,7 @@
       }
     }
 
-    /* ---- Icon button ---- */
+    /* ---- Icon buttons ---- */
     .icon-button {
       width: 34px;
       height: 34px;
@@ -254,7 +247,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
-      transition: min-height 180ms ease;
+      transition: min-height var(--mode-duration) var(--mode-ease);
     }
 
     .calculator.scientific .display {
@@ -304,18 +297,50 @@
     }
 
     /* ============================================================
-       Keypad
+       Keypad area (sci panel + standard keypad)
        ============================================================ */
+    .keypad-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ---- Collapsible scientific panel ---- */
+    .sci-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      min-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition:
+        grid-template-rows var(--mode-duration) var(--mode-ease),
+        opacity 400ms ease;
+    }
+
+    .calculator.scientific .sci-panel {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+
+    .sci-panel > .sci-grid {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(6px, 1.8vw, 10px);
+      padding-bottom: clamp(10px, 2.4vw, 14px);
+    }
+
+    /* ---- Standard keypad ---- */
     .keypad {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: clamp(8px, 2.2vw, 12px);
     }
 
-    .calculator.scientific .keypad {
-      gap: clamp(6px, 1.8vw, 10px);
-    }
-
+    /* ============================================================
+       Keys
+       ============================================================ */
     .key {
       min-height: clamp(52px, 12vw, 64px);
       display: grid;
@@ -340,20 +365,12 @@
         transform 80ms ease;
     }
 
-    .calculator.scientific .key {
-      min-height: clamp(46px, 11vw, 58px);
-    }
-
     .key:active { transform: translateY(1px); }
 
     .key:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
-
-    /* ---- Scientific-only visibility ---- */
-    .sci-only { display: none; }
-    .calculator.scientific .sci-only { display: grid; }
 
     /* ---- Variants ---- */
     .key--utility {
@@ -464,6 +481,163 @@
     }
 
     /* ============================================================
+       History drawer
+       ============================================================ */
+    .history-panel {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      transform: translateX(100%);
+      transition: transform var(--drawer-duration) var(--drawer-ease);
+      will-change: transform;
+    }
+
+    .history-panel.is-open {
+      transform: translateX(0);
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: clamp(14px, 3.6vw, 20px) clamp(14px, 3.6vw, 20px);
+      border-bottom: 1px solid var(--border);
+      flex: 0 0 auto;
+    }
+
+    .history-header h2 {
+      margin: 0;
+      font-size: 0.94rem;
+      font-weight: 650;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .history-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .text-button {
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 560;
+      color: var(--danger);
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 140ms ease, opacity 140ms ease;
+    }
+
+    .text-button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .text-button:disabled {
+      color: var(--text-subtle);
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    @media (hover: hover) {
+      .text-button:not(:disabled):hover {
+        background: var(--danger-soft);
+      }
+    }
+
+    .history-list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: clamp(8px, 2vw, 12px);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .history-entry {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      padding: 12px 14px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      text-align: right;
+      cursor: pointer;
+      transition:
+        background-color 140ms ease,
+        border-color 140ms ease;
+    }
+
+    .history-entry:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .history-entry:active {
+      background: var(--surface-3);
+    }
+
+    @media (hover: hover) {
+      .history-entry:hover {
+        background: var(--surface-2);
+        border-color: var(--border);
+      }
+    }
+
+    .history-expr {
+      max-width: 100%;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-result {
+      max-width: 100%;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 40px 24px;
+      color: var(--text-subtle);
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .history-empty[hidden] {
+      display: none;
+    }
+
+    /* ============================================================
        Utilities & responsive refinements
        ============================================================ */
     .sr-only {
@@ -480,44 +654,36 @@
 
     @media (max-width: 360px) {
       .calculator {
-        gap: 11px;
+        gap: 10px;
         padding: 13px;
-      }
-      .calculator.scientific {
-        gap: 9px;
-        padding: 12px;
       }
       .display { min-height: 104px; }
       .calculator.scientific .display { min-height: 96px; }
       .keypad { gap: 7px; }
-      .calculator.scientific .keypad { gap: 6px; }
+      .sci-panel > .sci-grid { gap: 6px; padding-bottom: 9px; }
       .key {
         min-height: 48px;
         border-radius: 10px;
       }
-      .calculator.scientific .key {
-        min-height: 42px;
-      }
       .brand h1 { font-size: 0.85rem; }
       .mode-btn { padding: 3px 8px; font-size: 0.65rem; }
       .icon-button { width: 30px; height: 30px; }
+      .header-actions { gap: 3px; }
+      .history-result { font-size: 1.15rem; }
     }
 
     @media (max-height: 760px) {
       body {
         padding-top: 10px;
         padding-bottom: 10px;
-        align-items: start;
       }
       .calculator {
-        gap: 11px;
+        gap: 10px;
         padding: 14px;
       }
-      .calculator.scientific { gap: 9px; padding: 12px; }
       .display { min-height: 104px; padding: 12px 16px; }
       .calculator.scientific .display { min-height: 92px; }
       .key { min-height: 46px; }
-      .calculator.scientific .key { min-height: 40px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -526,7 +692,9 @@
       *::after {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
         animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
         animation-iteration-count: 1 !important;
       }
     }
@@ -534,12 +702,35 @@
 </head>
 <body>
   <main class="calculator" id="calculator" aria-labelledby="app-title">
-    <header class="app-header">
+    <header class="app-header" id="appHeader">
       <div class="brand">
         <h1 id="app-title">Calibre</h1>
       </div>
 
       <div class="header-actions">
+        <button
+          id="historyBtn"
+          class="icon-button"
+          type="button"
+          aria-label="Open calculation history"
+          title="History"
+        >
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+            <path d="M12 7v5l4 2"></path>
+          </svg>
+        </button>
+
         <div class="mode-toggle" role="group" aria-label="Calculator mode">
           <button type="button" class="mode-btn is-active" data-mode="basic" aria-pressed="true">Basic</button>
           <button type="button" class="mode-btn" data-mode="scientific" aria-pressed="false">Sci</button>
@@ -561,55 +752,80 @@
       </div>
     </header>
 
-    <section class="display" aria-label="Calculator display">
+    <section class="display" id="displaySection" aria-label="Calculator display">
       <p class="expression" id="expression" aria-hidden="true"></p>
       <output class="result" id="result" aria-live="polite" aria-atomic="true">0</output>
     </section>
 
-    <div class="keypad" id="keypad">
-      <!-- Scientific row 1 -->
-      <button class="key key--function sci-only" type="button" data-action="func" data-func="sin" aria-label="Sine">sin</button>
-      <button class="key key--function sci-only" type="button" data-action="func" data-func="cos" aria-label="Cosine">cos</button>
-      <button class="key key--function sci-only" type="button" data-action="func" data-func="tan" aria-label="Tangent">tan</button>
-      <button class="key key--function key--toggle sci-only" type="button" data-action="angle" aria-label="Angle mode: DEG. Click to toggle.">DEG</button>
+    <div class="keypad-area" id="keypadArea">
+      <!-- Collapsible scientific panel -->
+      <div class="sci-panel" id="sciPanel">
+        <div class="sci-grid">
+          <button class="key key--function" type="button" data-action="func" data-func="sin" aria-label="Sine">sin</button>
+          <button class="key key--function" type="button" data-action="func" data-func="cos" aria-label="Cosine">cos</button>
+          <button class="key key--function" type="button" data-action="func" data-func="tan" aria-label="Tangent">tan</button>
+          <button class="key key--function key--toggle" type="button" data-action="angle" aria-label="Angle mode: DEG. Click to toggle.">DEG</button>
 
-      <!-- Scientific row 2 -->
-      <button class="key key--function sci-only" type="button" data-action="func" data-func="log" aria-label="Log base 10">log</button>
-      <button class="key key--function sci-only" type="button" data-action="func" data-func="ln" aria-label="Natural logarithm">ln</button>
-      <button class="key key--function sci-only" type="button" data-action="func" data-func="sqrt" aria-label="Square root">√</button>
-      <button class="key key--function sci-only" type="button" data-action="power" aria-label="Power, x to the y">xʸ</button>
+          <button class="key key--function" type="button" data-action="func" data-func="log" aria-label="Log base 10">log</button>
+          <button class="key key--function" type="button" data-action="func" data-func="ln" aria-label="Natural logarithm">ln</button>
+          <button class="key key--function" type="button" data-action="func" data-func="sqrt" aria-label="Square root">√</button>
+          <button class="key key--function" type="button" data-action="power" aria-label="Power, x to the y">xʸ</button>
 
-      <!-- Scientific row 3 -->
-      <button class="key key--function sci-only" type="button" data-action="paren" data-paren="(" aria-label="Open parenthesis">(</button>
-      <button class="key key--function sci-only" type="button" data-action="paren" data-paren=")" aria-label="Close parenthesis">)</button>
-      <button class="key key--function sci-only" type="button" data-action="constant" data-constant="π" aria-label="Pi">π</button>
-      <button class="key key--function sci-only" type="button" data-action="constant" data-constant="e" aria-label="Euler's number">e</button>
+          <button class="key key--function" type="button" data-action="paren" data-paren="(" aria-label="Open parenthesis">(</button>
+          <button class="key key--function" type="button" data-action="paren" data-paren=")" aria-label="Close parenthesis">)</button>
+          <button class="key key--function" type="button" data-action="constant" data-constant="π" aria-label="Pi">π</button>
+          <button class="key key--function" type="button" data-action="constant" data-constant="e" aria-label="Euler's number">e</button>
+        </div>
+      </div>
 
       <!-- Standard keypad -->
-      <button class="key key--danger" type="button" data-action="clear" aria-label="All clear">AC</button>
-      <button class="key key--utility" type="button" data-action="delete" aria-label="Delete last character">DEL</button>
-      <button class="key key--utility" type="button" data-action="percent" aria-label="Percent">%</button>
-      <button class="key key--operator" type="button" data-action="operator" data-operator="/" aria-label="Divide" aria-pressed="false">÷</button>
+      <div class="keypad" id="keypad">
+        <button class="key key--danger" type="button" data-action="clear" aria-label="All clear">AC</button>
+        <button class="key key--utility" type="button" data-action="delete" aria-label="Delete last character">DEL</button>
+        <button class="key key--utility" type="button" data-action="percent" aria-label="Percent">%</button>
+        <button class="key key--operator" type="button" data-action="operator" data-operator="/" aria-label="Divide" aria-pressed="false">÷</button>
 
-      <button class="key" type="button" data-action="digit" data-digit="7">7</button>
-      <button class="key" type="button" data-action="digit" data-digit="8">8</button>
-      <button class="key" type="button" data-action="digit" data-digit="9">9</button>
-      <button class="key key--operator" type="button" data-action="operator" data-operator="*" aria-label="Multiply" aria-pressed="false">×</button>
+        <button class="key" type="button" data-action="digit" data-digit="7">7</button>
+        <button class="key" type="button" data-action="digit" data-digit="8">8</button>
+        <button class="key" type="button" data-action="digit" data-digit="9">9</button>
+        <button class="key key--operator" type="button" data-action="operator" data-operator="*" aria-label="Multiply" aria-pressed="false">×</button>
 
-      <button class="key" type="button" data-action="digit" data-digit="4">4</button>
-      <button class="key" type="button" data-action="digit" data-digit="5">5</button>
-      <button class="key" type="button" data-action="digit" data-digit="6">6</button>
-      <button class="key key--operator" type="button" data-action="operator" data-operator="-" aria-label="Subtract" aria-pressed="false">−</button>
+        <button class="key" type="button" data-action="digit" data-digit="4">4</button>
+        <button class="key" type="button" data-action="digit" data-digit="5">5</button>
+        <button class="key" type="button" data-action="digit" data-digit="6">6</button>
+        <button class="key key--operator" type="button" data-action="operator" data-operator="-" aria-label="Subtract" aria-pressed="false">−</button>
 
-      <button class="key" type="button" data-action="digit" data-digit="1">1</button>
-      <button class="key" type="button" data-action="digit" data-digit="2">2</button>
-      <button class="key" type="button" data-action="digit" data-digit="3">3</button>
-      <button class="key key--operator" type="button" data-action="operator" data-operator="+" aria-label="Add" aria-pressed="false">+</button>
+        <button class="key" type="button" data-action="digit" data-digit="1">1</button>
+        <button class="key" type="button" data-action="digit" data-digit="2">2</button>
+        <button class="key" type="button" data-action="digit" data-digit="3">3</button>
+        <button class="key key--operator" type="button" data-action="operator" data-operator="+" aria-label="Add" aria-pressed="false">+</button>
 
-      <button class="key key--utility" type="button" data-action="sign" aria-label="Toggle sign">±</button>
-      <button class="key" type="button" data-action="digit" data-digit="0">0</button>
-      <button class="key" type="button" data-action="digit" data-digit="." aria-label="Decimal point">.</button>
-      <button class="key key--equals" type="button" data-action="equals" aria-label="Equals">=</button>
+        <button class="key key--utility" type="button" data-action="sign" aria-label="Toggle sign">±</button>
+        <button class="key" type="button" data-action="digit" data-digit="0">0</button>
+        <button class="key" type="button" data-action="digit" data-digit="." aria-label="Decimal point">.</button>
+        <button class="key key--equals" type="button" data-action="equals" aria-label="Equals">=</button>
+      </div>
+    </div>
+
+    <!-- History drawer -->
+    <div class="history-panel" id="historyPanel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <header class="history-header">
+        <h2 id="historyTitle">History</h2>
+        <div class="history-header-actions">
+          <button id="clearHistoryBtn" class="text-button" type="button" aria-label="Clear all history" disabled>Clear</button>
+          <button id="closeHistoryBtn" class="icon-button" type="button" aria-label="Close history" title="Close">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="history-list" id="historyList" role="list"></div>
+      <p class="history-empty" id="historyEmpty">No calculations yet.<br>Your history will appear here.</p>
     </div>
 
     <span class="sr-only" id="copyStatus" aria-live="polite"></span>
@@ -623,9 +839,13 @@
          Element references
          ============================================================ */
       const calculator = document.getElementById('calculator');
+      const appHeader = document.getElementById('appHeader');
+      const displaySection = document.getElementById('displaySection');
+      const keypadArea = document.getElementById('keypadArea');
       const resultEl = document.getElementById('result');
       const expressionEl = document.getElementById('expression');
       const keypad = document.getElementById('keypad');
+      const sciPanel = document.getElementById('sciPanel');
       const copyBtn = document.getElementById('copyBtn');
       const copyStatus = document.getElementById('copyStatus');
       const modeButtons = Array.from(document.querySelectorAll('.mode-btn'));
@@ -634,12 +854,21 @@
       );
       const angleButton = document.querySelector('[data-action="angle"]');
 
+      const historyBtn = document.getElementById('historyBtn');
+      const historyPanel = document.getElementById('historyPanel');
+      const historyList = document.getElementById('historyList');
+      const historyEmpty = document.getElementById('historyEmpty');
+      const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+      const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+
       /* ============================================================
          Constants
          ============================================================ */
       const MAX_INPUT_DIGITS = 15;
       const PRECISION = 12;
       const COPY_FEEDBACK_MS = 1400;
+      const HISTORY_KEY = 'calibre-history-v1';
+      const MAX_HISTORY = 30;
 
       const FUNC_PREFIXES = ['sqrt', 'sin', 'cos', 'tan', 'log', 'ln'];
 
@@ -662,22 +891,176 @@
       };
 
       let copiedTimer = null;
+      let historyOpen = false;
+      let historyTrigger = null;
 
       /* ============================================================
-         Reset
+         History persistence
          ============================================================ */
-      function resetState() {
-        state.expr = '';
-        state.resultValue = null;
-        state.resultStr = '';
-        state.lastExpression = '';
-        state.error = null;
-        state.justEvaluated = false;
+      let historyEntries = loadHistory();
+
+      function loadHistory() {
+        try {
+          const raw = localStorage.getItem(HISTORY_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return [];
+          return parsed
+            .filter(
+              (entry) =>
+                entry &&
+                typeof entry.expr === 'string' &&
+                typeof entry.result === 'string' &&
+                typeof entry.value === 'number' &&
+                Number.isFinite(entry.value)
+            )
+            .slice(0, MAX_HISTORY);
+        } catch {
+          return [];
+        }
       }
 
-      function ensureNoError() {
-        if (state.error) resetState();
+      function saveHistory() {
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(historyEntries));
+        } catch {
+          // Storage unavailable; history is session-only.
+        }
       }
+
+      function addToHistory(expr, result, value) {
+        historyEntries.unshift({ expr, result, value });
+        if (historyEntries.length > MAX_HISTORY) {
+          historyEntries.length = MAX_HISTORY;
+        }
+        saveHistory();
+        renderHistory();
+      }
+
+      function renderHistory() {
+        historyList.innerHTML = '';
+        clearHistoryBtn.disabled = historyEntries.length === 0;
+
+        if (historyEntries.length === 0) {
+          historyEmpty.hidden = false;
+          return;
+        }
+
+        historyEmpty.hidden = true;
+
+        for (let i = 0; i < historyEntries.length; i++) {
+          const entry = historyEntries[i];
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'history-entry';
+          btn.setAttribute('role', 'listitem');
+          btn.setAttribute(
+            'aria-label',
+            `Use result ${entry.result}, from ${entry.expr}`
+          );
+
+          const exprSpan = document.createElement('span');
+          exprSpan.className = 'history-expr';
+          exprSpan.textContent = entry.expr;
+
+          const resultSpan = document.createElement('span');
+          resultSpan.className = 'history-result';
+          resultSpan.textContent = entry.result;
+
+          btn.appendChild(exprSpan);
+          btn.appendChild(resultSpan);
+          btn.addEventListener('click', () => useHistoryEntry(i));
+          historyList.appendChild(btn);
+        }
+      }
+
+      function useHistoryEntry(idx) {
+        const entry = historyEntries[idx];
+        if (!entry) return;
+
+        state.expr = String(entry.value);
+        state.resultValue = entry.value;
+        state.resultStr = entry.result;
+        state.lastExpression = entry.expr + ' =';
+        state.justEvaluated = true;
+        state.error = null;
+
+        closeHistory();
+        render();
+      }
+
+      function clearHistory() {
+        historyEntries = [];
+        saveHistory();
+        renderHistory();
+      }
+
+      /* ============================================================
+         History drawer open/close
+         ============================================================ */
+      function openHistory() {
+        if (historyOpen) return;
+        historyOpen = true;
+        historyTrigger = document.activeElement;
+
+        renderHistory();
+        historyPanel.classList.add('is-open');
+        historyPanel.setAttribute('aria-hidden', 'false');
+
+        appHeader.inert = true;
+        displaySection.inert = true;
+        keypadArea.inert = true;
+
+        // Focus the close button after the panel begins its transition.
+        closeHistoryBtn.focus({ preventScroll: true });
+      }
+
+      function closeHistory() {
+        if (!historyOpen) return;
+        historyOpen = false;
+
+        historyPanel.classList.remove('is-open');
+        historyPanel.setAttribute('aria-hidden', 'true');
+
+        appHeader.inert = false;
+        displaySection.inert = false;
+        keypadArea.inert = false;
+
+        const target =
+          historyTrigger && document.contains(historyTrigger)
+            ? historyTrigger
+            : historyBtn;
+
+        // Return focus to the trigger.
+        requestAnimationFrame(() => {
+          try {
+            target.focus({ preventScroll: true });
+          } catch {
+            historyBtn.focus({ preventScroll: true });
+          }
+        });
+      }
+
+      // Trap Tab focus within the panel while it is open.
+      historyPanel.addEventListener('keydown', (event) => {
+        if (event.key !== 'Tab') return;
+
+        const focusable = historyPanel.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      });
 
       /* ============================================================
          Number formatting
@@ -722,7 +1105,7 @@
       }
 
       /* ============================================================
-         Expression display formatting
+         Expression display formatter
          ============================================================ */
       function formatExpression(expr) {
         if (!expr) return '';
@@ -793,7 +1176,7 @@
       }
 
       /* ============================================================
-         Tokenizer
+         Tokenizer (supports scientific notation)
          ============================================================ */
       function tokenize(str) {
         const tokens = [];
@@ -807,6 +1190,21 @@
           if (/[0-9.]/.test(ch)) {
             let num = '';
             while (i < str.length && /[0-9.]/.test(str[i])) num += str[i++];
+
+            // Scientific notation: <digits>[eE][+-]?<digits>
+            if (i < str.length && (str[i] === 'e' || str[i] === 'E')) {
+              const next = str[i + 1];
+              const nextNext = str[i + 2];
+              if ((next === '+' || next === '-') && /[0-9]/.test(nextNext)) {
+                num += str[i++];
+                num += str[i++];
+                while (i < str.length && /[0-9]/.test(str[i])) num += str[i++];
+              } else if (/[0-9]/.test(next)) {
+                num += str[i++];
+                while (i < str.length && /[0-9]/.test(str[i])) num += str[i++];
+              }
+            }
+
             const value = parseFloat(num);
             if (!Number.isFinite(value)) throw new Error('Invalid number');
             tokens.push({ type: 'number', value });
@@ -853,9 +1251,7 @@
               prev.type === 'func';
 
             if (isUnary) {
-              if (t.value === '-') {
-                result.push({ type: 'unary', value: 'neg' });
-              }
+              if (t.value === '-') result.push({ type: 'unary', value: 'neg' });
               continue;
             }
           }
@@ -1031,7 +1427,6 @@
       function computePreview() {
         if (!state.expr) return null;
 
-        // Only preview when an operation is present
         if (
           !/[+\-*/^()πe]/.test(state.expr) &&
           !/(sin|cos|tan|log|ln|sqrt)/.test(state.expr)
@@ -1129,7 +1524,6 @@
           const beforeLast = state.expr[state.expr.length - 2] || '';
 
           if (last === '-' && '+-*/^'.includes(beforeLast)) {
-            // Unary minus pattern e.g. "*-"
             state.expr =
               op === '-'
                 ? state.expr.slice(0, -2) + '-'
@@ -1148,14 +1542,7 @@
 
       function inputFunction(name) {
         ensureNoError();
-
-        if (state.justEvaluated) {
-          state.expr = '';
-          state.resultValue = null;
-          state.resultStr = '';
-          state.lastExpression = '';
-          state.justEvaluated = false;
-        }
+        clearEvaluated();
 
         const last = state.expr[state.expr.length - 1] || '';
         if (last === ')' || last === 'π' || last === 'e' || /[\d.]/.test(last)) {
@@ -1168,14 +1555,7 @@
 
       function inputConstant(c) {
         ensureNoError();
-
-        if (state.justEvaluated) {
-          state.expr = '';
-          state.resultValue = null;
-          state.resultStr = '';
-          state.lastExpression = '';
-          state.justEvaluated = false;
-        }
+        clearEvaluated();
 
         const last = state.expr[state.expr.length - 1] || '';
         if (last === ')' || last === 'π' || last === 'e' || /[\d.]/.test(last)) {
@@ -1188,14 +1568,7 @@
 
       function inputParenLeft() {
         ensureNoError();
-
-        if (state.justEvaluated) {
-          state.expr = '';
-          state.resultValue = null;
-          state.resultStr = '';
-          state.lastExpression = '';
-          state.justEvaluated = false;
-        }
+        clearEvaluated();
 
         const last = state.expr[state.expr.length - 1] || '';
         if (last === ')' || last === 'π' || last === 'e' || /[\d.]/.test(last)) {
@@ -1265,6 +1638,12 @@
           state.resultStr = formatNumberForDisplay(value);
           state.justEvaluated = true;
           state.error = null;
+
+          // Only add meaningful computations to history.
+          const tokens = tokenize(full);
+          if (tokens.length > 1) {
+            addToHistory(formatExpression(full), state.resultStr, value);
+          }
         } catch (err) {
           state.error = err.message || 'Invalid expression';
           state.resultValue = null;
@@ -1337,7 +1716,7 @@
               newValue = leftValue * numValue / 100;
             }
           } catch {
-            // Keep simple divide-by-100 fallback
+            // fall through to plain divide-by-100
           }
         }
 
@@ -1412,6 +1791,29 @@
         render();
       }
 
+      function resetState() {
+        state.expr = '';
+        state.resultValue = null;
+        state.resultStr = '';
+        state.lastExpression = '';
+        state.error = null;
+        state.justEvaluated = false;
+      }
+
+      function ensureNoError() {
+        if (state.error) resetState();
+      }
+
+      function clearEvaluated() {
+        if (state.justEvaluated) {
+          state.expr = '';
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+        }
+      }
+
       /* ============================================================
          Render
          ============================================================ */
@@ -1462,7 +1864,10 @@
          ============================================================ */
       function setMode(mode) {
         state.mode = mode;
-        calculator.classList.toggle('scientific', mode === 'scientific');
+        const isSci = mode === 'scientific';
+
+        calculator.classList.toggle('scientific', isSci);
+        sciPanel.inert = !isSci;
 
         modeButtons.forEach((btn) => {
           const active = btn.dataset.mode === mode;
@@ -1552,6 +1957,18 @@
           case 'sign':
             toggleSign();
             break;
+          default:
+            break;
+        }
+      });
+
+      // Scientific panel uses its own delegated listener so its actions stay
+      // scoped to that subtree.
+      sciPanel.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+
+        switch (button.dataset.action) {
           case 'func':
             inputFunction(button.dataset.func);
             break;
@@ -1578,6 +1995,9 @@
       });
 
       copyBtn.addEventListener('click', copyResult);
+      historyBtn.addEventListener('click', openHistory);
+      closeHistoryBtn.addEventListener('click', closeHistory);
+      clearHistoryBtn.addEventListener('click', clearHistory);
 
       // Blur mouse-activated buttons so global keyboard shortcuts keep working.
       document.addEventListener('pointerup', (event) => {
@@ -1594,6 +2014,16 @@
         if (event.altKey || event.ctrlKey || event.metaKey) return;
 
         const key = event.key;
+
+        // While the history drawer is open, only Escape is handled globally.
+        if (historyOpen) {
+          if (key === 'Escape') {
+            event.preventDefault();
+            closeHistory();
+          }
+          return;
+        }
+
         const target = event.target;
 
         if (
@@ -1670,6 +2100,11 @@
             event.preventDefault();
             clearAll();
             break;
+          case 'h':
+          case 'H':
+            event.preventDefault();
+            openHistory();
+            break;
           case 's':
           case 'S':
             event.preventDefault();
@@ -1699,6 +2134,7 @@
          Init
          ============================================================ */
       setMode('basic');
+      renderHistory();
       render();
     })();
   </script>
