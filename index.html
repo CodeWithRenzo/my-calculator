@@ -67,6 +67,7 @@
       display: grid;
       place-items: center;
       overflow-x: hidden;
+      overflow-y: auto;
       padding:
         max(clamp(16px, 5vw, 48px), env(safe-area-inset-top))
         max(clamp(16px, 5vw, 48px), env(safe-area-inset-right))
@@ -96,13 +97,22 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
+      transition: gap 180ms ease;
     }
 
+    .calculator.scientific {
+      width: min(100%, 440px);
+      gap: clamp(10px, 3vw, 16px);
+    }
+
+    /* ============================================================
+       Header
+       ============================================================ */
     .app-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       padding: 2px 2px 0;
     }
 
@@ -124,6 +134,7 @@
     }
 
     .brand .edition {
+      display: none;
       color: var(--text-subtle);
       font-size: 0.66rem;
       font-weight: 560;
@@ -132,9 +143,59 @@
       text-transform: uppercase;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ---- Mode toggle ---- */
+    .mode-toggle {
+      display: inline-flex;
+      padding: 2px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .mode-btn {
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 560;
+      letter-spacing: 0.02em;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      line-height: 1.3;
+      transition:
+        background-color 140ms ease,
+        color 140ms ease,
+        box-shadow 140ms ease;
+    }
+
+    .mode-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .mode-btn.is-active {
+      color: var(--text);
+      background: var(--surface);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    @media (hover: hover) {
+      .mode-btn:not(.is-active):hover {
+        color: var(--text);
+      }
+    }
+
+    /* ---- Icon button ---- */
     .icon-button {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       flex: 0 0 auto;
       display: grid;
       place-items: center;
@@ -152,8 +213,8 @@
     }
 
     .icon-button svg {
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
     }
 
     .icon-button:active {
@@ -175,17 +236,9 @@
       background: var(--accent-soft);
     }
 
-    .icon-check {
-      display: none;
-    }
-
-    .icon-button.is-copied .icon-copy {
-      display: none;
-    }
-
-    .icon-button.is-copied .icon-check {
-      display: block;
-    }
+    .icon-check { display: none; }
+    .icon-button.is-copied .icon-copy { display: none; }
+    .icon-button.is-copied .icon-check { display: block; }
 
     /* ============================================================
        Display
@@ -196,11 +249,16 @@
       flex-direction: column;
       justify-content: flex-end;
       gap: 6px;
-      padding: clamp(16px, 4vw, 20px);
+      padding: clamp(14px, 4vw, 20px);
       background: var(--display-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
+      transition: min-height 180ms ease;
+    }
+
+    .calculator.scientific .display {
+      min-height: 112px;
     }
 
     .expression {
@@ -208,7 +266,7 @@
       margin: 0;
       overflow: hidden;
       color: var(--text-muted);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-variant-numeric: tabular-nums;
       font-weight: 500;
       letter-spacing: 0.01em;
@@ -224,29 +282,21 @@
       margin: 0;
       overflow: hidden;
       color: var(--text);
-      font-size: clamp(2.4rem, 10vw, 3.5rem);
       font-variant-numeric: tabular-nums;
       font-weight: 620;
-      letter-spacing: -0.045em;
+      letter-spacing: -0.04em;
       line-height: 1.05;
       text-align: right;
+      text-overflow: ellipsis;
       white-space: nowrap;
-      transition:
-        color 140ms ease,
-        font-size 120ms ease;
+      transition: color 140ms ease;
     }
 
-    .result[data-size="md"] {
-      font-size: clamp(2rem, 8vw, 2.9rem);
-    }
-
-    .result[data-size="sm"] {
-      font-size: clamp(1.6rem, 6.5vw, 2.25rem);
-    }
-
-    .result[data-size="xs"] {
-      font-size: clamp(1.2rem, 4.8vw, 1.75rem);
-    }
+    .result[data-size="lg"] { font-size: clamp(2.4rem, 10vw, 3.5rem); }
+    .result[data-size="md"] { font-size: clamp(1.9rem, 8vw, 2.8rem); }
+    .result[data-size="sm"] { font-size: clamp(1.5rem, 6.5vw, 2.2rem); }
+    .result[data-size="xs"] { font-size: clamp(1.15rem, 5vw, 1.7rem); }
+    .result[data-size="xxs"] { font-size: clamp(0.95rem, 4vw, 1.35rem); }
 
     .result.is-error {
       color: var(--danger);
@@ -260,6 +310,10 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: clamp(8px, 2.2vw, 12px);
+    }
+
+    .calculator.scientific .keypad {
+      gap: clamp(6px, 1.8vw, 10px);
     }
 
     .key {
@@ -286,15 +340,22 @@
         transform 80ms ease;
     }
 
-    .key:active {
-      transform: translateY(1px);
+    .calculator.scientific .key {
+      min-height: clamp(46px, 11vw, 58px);
     }
+
+    .key:active { transform: translateY(1px); }
 
     .key:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
 
+    /* ---- Scientific-only visibility ---- */
+    .sci-only { display: none; }
+    .calculator.scientific .sci-only { display: grid; }
+
+    /* ---- Variants ---- */
     .key--utility {
       color: var(--text-muted);
       background: var(--surface-3);
@@ -337,44 +398,68 @@
       border-color: var(--accent-strong);
     }
 
+    /* ---- Scientific function keys ---- */
+    .key--function {
+      color: var(--text-muted);
+      background: var(--surface-2);
+      font-size: clamp(0.78rem, 3vw, 0.9rem);
+      font-weight: 540;
+      letter-spacing: 0.01em;
+    }
+
+    .key--function[data-func="sqrt"] {
+      font-size: clamp(1rem, 4vw, 1.15rem);
+    }
+
+    .key--toggle {
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-size: clamp(0.62rem, 2.4vw, 0.7rem);
+      font-weight: 680;
+      letter-spacing: 0.08em;
+    }
+
+    /* ---- Hover states ---- */
     @media (hover: hover) {
       .icon-button:hover {
         color: var(--text);
         background: var(--surface-2);
       }
-
       .icon-button.is-copied:hover {
         color: var(--accent);
         background: var(--accent-soft-hover);
       }
-
       .key:hover {
         background: #eef0f4;
         border-color: var(--border);
       }
-
       .key--utility:hover {
         color: var(--text);
         background: #e3e6ec;
       }
-
       .key--operator:hover {
         background: var(--accent-soft-hover);
       }
-
       .key--operator[aria-pressed="true"]:hover {
         background: var(--accent-strong);
         border-color: var(--accent-strong);
       }
-
       .key--danger:hover {
         color: var(--danger);
         background: var(--danger-soft-hover);
       }
-
       .key--equals:hover {
         background: var(--accent-strong);
         border-color: var(--accent-strong);
+      }
+      .key--function:hover {
+        color: var(--text);
+        background: #eceef3;
+        border-color: var(--border);
+      }
+      .key--toggle:hover {
+        color: var(--accent-strong);
+        background: var(--accent-soft-hover);
       }
     }
 
@@ -395,43 +480,44 @@
 
     @media (max-width: 360px) {
       .calculator {
-        gap: 12px;
-        padding: 14px;
+        gap: 11px;
+        padding: 13px;
       }
-
-      .display {
-        min-height: 112px;
+      .calculator.scientific {
+        gap: 9px;
+        padding: 12px;
       }
-
-      .keypad {
-        gap: 8px;
-      }
-
-      .key {
-        min-height: 50px;
-        border-radius: 10px;
-      }
-    }
-
-    @media (max-height: 720px) {
-      body {
-        padding-top: 12px;
-        padding-bottom: 12px;
-      }
-
-      .calculator {
-        gap: 12px;
-        padding: 16px;
-      }
-
-      .display {
-        min-height: 112px;
-        padding: 14px 16px;
-      }
-
+      .display { min-height: 104px; }
+      .calculator.scientific .display { min-height: 96px; }
+      .keypad { gap: 7px; }
+      .calculator.scientific .keypad { gap: 6px; }
       .key {
         min-height: 48px;
+        border-radius: 10px;
       }
+      .calculator.scientific .key {
+        min-height: 42px;
+      }
+      .brand h1 { font-size: 0.85rem; }
+      .mode-btn { padding: 3px 8px; font-size: 0.65rem; }
+      .icon-button { width: 30px; height: 30px; }
+    }
+
+    @media (max-height: 760px) {
+      body {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        align-items: start;
+      }
+      .calculator {
+        gap: 11px;
+        padding: 14px;
+      }
+      .calculator.scientific { gap: 9px; padding: 12px; }
+      .display { min-height: 104px; padding: 12px 16px; }
+      .calculator.scientific .display { min-height: 92px; }
+      .key { min-height: 46px; }
+      .calculator.scientific .key { min-height: 40px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -447,109 +533,78 @@
   </style>
 </head>
 <body>
-  <main class="calculator" aria-labelledby="app-title">
+  <main class="calculator" id="calculator" aria-labelledby="app-title">
     <header class="app-header">
       <div class="brand">
         <h1 id="app-title">Calibre</h1>
-        <span class="edition">Calculator</span>
       </div>
 
-      <button
-        id="copyBtn"
-        class="icon-button"
-        type="button"
-        aria-label="Copy result"
-        title="Copy result"
-      >
-        <svg
-          class="icon-copy"
-          aria-hidden="true"
-          focusable="false"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>
+      <div class="header-actions">
+        <div class="mode-toggle" role="group" aria-label="Calculator mode">
+          <button type="button" class="mode-btn is-active" data-mode="basic" aria-pressed="true">Basic</button>
+          <button type="button" class="mode-btn" data-mode="scientific" aria-pressed="false">Sci</button>
+        </div>
 
-        <svg
-          class="icon-check"
-          aria-hidden="true"
-          focusable="false"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M20 6 9 17l-5-5"></path>
-        </svg>
-      </button>
+        <button id="copyBtn" class="icon-button" type="button" aria-label="Copy result" title="Copy result">
+          <svg class="icon-copy" aria-hidden="true" focusable="false" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <svg class="icon-check" aria-hidden="true" focusable="false" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"></path>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <section class="display" aria-label="Calculator display">
       <p class="expression" id="expression" aria-hidden="true"></p>
-      <output
-        class="result"
-        id="result"
-        aria-live="polite"
-        aria-atomic="true"
-      >0</output>
+      <output class="result" id="result" aria-live="polite" aria-atomic="true">0</output>
     </section>
 
     <div class="keypad" id="keypad">
+      <!-- Scientific row 1 -->
+      <button class="key key--function sci-only" type="button" data-action="func" data-func="sin" aria-label="Sine">sin</button>
+      <button class="key key--function sci-only" type="button" data-action="func" data-func="cos" aria-label="Cosine">cos</button>
+      <button class="key key--function sci-only" type="button" data-action="func" data-func="tan" aria-label="Tangent">tan</button>
+      <button class="key key--function key--toggle sci-only" type="button" data-action="angle" aria-label="Angle mode: DEG. Click to toggle.">DEG</button>
+
+      <!-- Scientific row 2 -->
+      <button class="key key--function sci-only" type="button" data-action="func" data-func="log" aria-label="Log base 10">log</button>
+      <button class="key key--function sci-only" type="button" data-action="func" data-func="ln" aria-label="Natural logarithm">ln</button>
+      <button class="key key--function sci-only" type="button" data-action="func" data-func="sqrt" aria-label="Square root">√</button>
+      <button class="key key--function sci-only" type="button" data-action="power" aria-label="Power, x to the y">xʸ</button>
+
+      <!-- Scientific row 3 -->
+      <button class="key key--function sci-only" type="button" data-action="paren" data-paren="(" aria-label="Open parenthesis">(</button>
+      <button class="key key--function sci-only" type="button" data-action="paren" data-paren=")" aria-label="Close parenthesis">)</button>
+      <button class="key key--function sci-only" type="button" data-action="constant" data-constant="π" aria-label="Pi">π</button>
+      <button class="key key--function sci-only" type="button" data-action="constant" data-constant="e" aria-label="Euler's number">e</button>
+
+      <!-- Standard keypad -->
       <button class="key key--danger" type="button" data-action="clear" aria-label="All clear">AC</button>
-      <button class="key key--utility" type="button" data-action="delete" aria-label="Delete last digit">DEL</button>
+      <button class="key key--utility" type="button" data-action="delete" aria-label="Delete last character">DEL</button>
       <button class="key key--utility" type="button" data-action="percent" aria-label="Percent">%</button>
-      <button
-        class="key key--operator"
-        type="button"
-        data-action="operator"
-        data-operator="/"
-        aria-label="Divide"
-        aria-pressed="false"
-      >÷</button>
+      <button class="key key--operator" type="button" data-action="operator" data-operator="/" aria-label="Divide" aria-pressed="false">÷</button>
 
       <button class="key" type="button" data-action="digit" data-digit="7">7</button>
       <button class="key" type="button" data-action="digit" data-digit="8">8</button>
       <button class="key" type="button" data-action="digit" data-digit="9">9</button>
-      <button
-        class="key key--operator"
-        type="button"
-        data-action="operator"
-        data-operator="*"
-        aria-label="Multiply"
-        aria-pressed="false"
-      >×</button>
+      <button class="key key--operator" type="button" data-action="operator" data-operator="*" aria-label="Multiply" aria-pressed="false">×</button>
 
       <button class="key" type="button" data-action="digit" data-digit="4">4</button>
       <button class="key" type="button" data-action="digit" data-digit="5">5</button>
       <button class="key" type="button" data-action="digit" data-digit="6">6</button>
-      <button
-        class="key key--operator"
-        type="button"
-        data-action="operator"
-        data-operator="-"
-        aria-label="Subtract"
-        aria-pressed="false"
-      >−</button>
+      <button class="key key--operator" type="button" data-action="operator" data-operator="-" aria-label="Subtract" aria-pressed="false">−</button>
 
       <button class="key" type="button" data-action="digit" data-digit="1">1</button>
       <button class="key" type="button" data-action="digit" data-digit="2">2</button>
       <button class="key" type="button" data-action="digit" data-digit="3">3</button>
-      <button
-        class="key key--operator"
-        type="button"
-        data-action="operator"
-        data-operator="+"
-        aria-label="Add"
-        aria-pressed="false"
-      >+</button>
+      <button class="key key--operator" type="button" data-action="operator" data-operator="+" aria-label="Add" aria-pressed="false">+</button>
 
       <button class="key key--utility" type="button" data-action="sign" aria-label="Toggle sign">±</button>
       <button class="key" type="button" data-action="digit" data-digit="0">0</button>
@@ -567,322 +622,658 @@
       /* ============================================================
          Element references
          ============================================================ */
+      const calculator = document.getElementById('calculator');
       const resultEl = document.getElementById('result');
       const expressionEl = document.getElementById('expression');
       const keypad = document.getElementById('keypad');
       const copyBtn = document.getElementById('copyBtn');
       const copyStatus = document.getElementById('copyStatus');
+      const modeButtons = Array.from(document.querySelectorAll('.mode-btn'));
       const operatorButtons = Array.from(
         document.querySelectorAll('[data-action="operator"]')
       );
+      const angleButton = document.querySelector('[data-action="angle"]');
 
       /* ============================================================
          Constants
          ============================================================ */
       const MAX_INPUT_DIGITS = 15;
-      const PRECISION = 15;
+      const PRECISION = 12;
       const COPY_FEEDBACK_MS = 1400;
 
-      const SYMBOLS = Object.freeze({
-        '+': '+',
-        '-': '−',
-        '*': '×',
-        '/': '÷'
+      const FUNC_PREFIXES = ['sqrt', 'sin', 'cos', 'tan', 'log', 'ln'];
+
+      const DISPLAY_SYMBOLS = Object.freeze({
+        '+': '+', '-': '−', '*': '×', '/': '÷', '^': '^'
       });
 
       /* ============================================================
          Calculator state
          ============================================================ */
       const state = {
-        current: '0',
-        accumulator: null,
-        operator: null,
-        overwrite: true,
-        operandEntered: false,
+        expr: '',
+        resultValue: null,
+        resultStr: '',
+        lastExpression: '',
         error: null,
-        repeatOperator: null,
-        repeatOperand: null,
-        lastResult: null,
-        lastExpression: ''
+        justEvaluated: false,
+        angleMode: 'DEG',
+        mode: 'basic'
       };
 
       let copiedTimer = null;
 
       /* ============================================================
-         State helpers
+         Reset
          ============================================================ */
       function resetState() {
-        state.current = '0';
-        state.accumulator = null;
-        state.operator = null;
-        state.overwrite = true;
-        state.operandEntered = false;
-        state.error = null;
-        state.repeatOperator = null;
-        state.repeatOperand = null;
-        state.lastResult = null;
+        state.expr = '';
+        state.resultValue = null;
+        state.resultStr = '';
         state.lastExpression = '';
+        state.error = null;
+        state.justEvaluated = false;
       }
 
-      function setError(message) {
-        state.current = 'Error';
-        state.accumulator = null;
-        state.operator = null;
-        state.overwrite = true;
-        state.operandEntered = false;
-        state.error = message || 'Invalid calculation';
-        state.repeatOperator = null;
-        state.repeatOperand = null;
-        state.lastResult = null;
-        state.lastExpression = '';
-        render();
+      function ensureNoError() {
+        if (state.error) resetState();
       }
 
       /* ============================================================
-         Number helpers
+         Number formatting
          ============================================================ */
-      function normalize(value) {
-        if (!Number.isFinite(value)) {
-          return value;
-        }
-
-        if (Object.is(value, -0)) {
-          return 0;
-        }
+      function formatNumberForDisplay(value) {
+        if (!Number.isFinite(value)) return 'Error';
+        if (Object.is(value, -0)) value = 0;
 
         const rounded = Number(value.toPrecision(PRECISION));
-        return Object.is(rounded, -0) ? 0 : rounded;
-      }
+        if (!Number.isFinite(rounded)) return 'Error';
 
-      function numberToString(value) {
-        if (Object.is(value, -0)) {
-          return '0';
-        }
-        return String(value);
-      }
-
-      function formatNumber(value) {
-        const stringValue = String(value);
-
-        if (stringValue === 'Error') {
-          return stringValue;
+        const abs = Math.abs(rounded);
+        if (abs !== 0 && (abs >= 1e12 || abs < 1e-9)) {
+          return rounded
+            .toExponential(6)
+            .replace(/\.?0+e/, 'e')
+            .replace('e+', 'e');
         }
 
-        if (/[eE]/.test(stringValue)) {
-          return stringValue;
-        }
+        const str = String(rounded);
+        if (/[eE]/.test(str)) return str;
 
         let sign = '';
-        let unsigned = stringValue;
-
+        let unsigned = str;
         if (unsigned.startsWith('-')) {
           sign = '-';
           unsigned = unsigned.slice(1);
         }
 
-        const parts = unsigned.split('.');
-        const integerPart = parts[0];
-        const decimalPart = parts.length > 1 ? parts[1] : null;
-
-        const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-        return sign + groupedInteger + (decimalPart !== null ? '.' + decimalPart : '');
+        const [intPart, decPart] = unsigned.split('.');
+        const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return sign + grouped + (decPart !== undefined ? '.' + decPart : '');
       }
 
       function getDisplaySize(text) {
-        if (text.length > 17) return 'xs';
-        if (text.length > 13) return 'sm';
-        if (text.length > 9) return 'md';
+        const len = text.length;
+        if (len > 30) return 'xxs';
+        if (len > 22) return 'xs';
+        if (len > 15) return 'sm';
+        if (len > 9) return 'md';
         return 'lg';
       }
 
       /* ============================================================
-         Calculation logic
+         Expression display formatting
          ============================================================ */
-      function compute(a, b, operator) {
-        if (!Number.isFinite(a) || !Number.isFinite(b)) {
-          return { ok: false, reason: 'Invalid number' };
-        }
+      function formatExpression(expr) {
+        if (!expr) return '';
+        let out = '';
+        let i = 0;
+        let prevType = null;
 
-        let rawResult;
+        while (i < expr.length) {
+          const ch = expr[i];
 
-        switch (operator) {
-          case '+':
-            rawResult = a + b;
-            break;
-          case '-':
-            rawResult = a - b;
-            break;
-          case '*':
-            rawResult = a * b;
-            break;
-          case '/':
-            if (b === 0) {
-              return { ok: false, reason: 'Cannot divide by zero' };
+          if (/[\d.]/.test(ch)) {
+            let num = '';
+            while (i < expr.length && /[\d.]/.test(expr[i])) num += expr[i++];
+            out += num;
+            prevType = 'number';
+            continue;
+          }
+
+          if (ch === 'π' || ch === 'e') {
+            out += ch;
+            i++;
+            prevType = 'const';
+            continue;
+          }
+
+          if (ch === '(') {
+            out += '(';
+            i++;
+            prevType = 'lparen';
+            continue;
+          }
+
+          if (ch === ')') {
+            out += ')';
+            i++;
+            prevType = 'rparen';
+            continue;
+          }
+
+          if ('+-*/^'.includes(ch)) {
+            const isUnary =
+              prevType === null ||
+              prevType === 'op' ||
+              prevType === 'lparen' ||
+              prevType === 'func';
+
+            const sym = DISPLAY_SYMBOLS[ch];
+            out += isUnary ? sym : ' ' + sym + ' ';
+            i++;
+            prevType = 'op';
+            continue;
+          }
+
+          let matched = false;
+          for (const fn of FUNC_PREFIXES) {
+            if (expr.startsWith(fn, i)) {
+              out += fn === 'sqrt' ? '√' : fn;
+              i += fn.length;
+              prevType = 'func';
+              matched = true;
+              break;
             }
-            rawResult = a / b;
-            break;
-          default:
-            return { ok: false, reason: 'Invalid operation' };
+          }
+          if (!matched) i++;
         }
 
-        if (!Number.isFinite(rawResult)) {
-          return { ok: false, reason: 'Result is too large' };
+        return out.trim();
+      }
+
+      /* ============================================================
+         Tokenizer
+         ============================================================ */
+      function tokenize(str) {
+        const tokens = [];
+        let i = 0;
+
+        while (i < str.length) {
+          const ch = str[i];
+
+          if (ch === ' ') { i++; continue; }
+
+          if (/[0-9.]/.test(ch)) {
+            let num = '';
+            while (i < str.length && /[0-9.]/.test(str[i])) num += str[i++];
+            const value = parseFloat(num);
+            if (!Number.isFinite(value)) throw new Error('Invalid number');
+            tokens.push({ type: 'number', value });
+            continue;
+          }
+
+          if ('+-*/^'.includes(ch)) {
+            tokens.push({ type: 'op', value: ch });
+            i++;
+            continue;
+          }
+
+          if (ch === '(') { tokens.push({ type: 'lparen' }); i++; continue; }
+          if (ch === ')') { tokens.push({ type: 'rparen' }); i++; continue; }
+          if (ch === 'π') { tokens.push({ type: 'number', value: Math.PI }); i++; continue; }
+          if (ch === 'e') { tokens.push({ type: 'number', value: Math.E }); i++; continue; }
+
+          let matched = false;
+          for (const fn of FUNC_PREFIXES) {
+            if (str.startsWith(fn, i)) {
+              tokens.push({ type: 'func', value: fn });
+              i += fn.length;
+              matched = true;
+              break;
+            }
+          }
+          if (matched) continue;
+
+          throw new Error('Invalid character');
         }
 
-        return { ok: true, value: normalize(rawResult) };
+        return resolveUnary(tokens);
+      }
+
+      function resolveUnary(tokens) {
+        const result = [];
+        for (const t of tokens) {
+          if (t.type === 'op' && (t.value === '-' || t.value === '+')) {
+            const prev = result[result.length - 1];
+            const isUnary =
+              !prev ||
+              prev.type === 'op' ||
+              prev.type === 'lparen' ||
+              prev.type === 'func';
+
+            if (isUnary) {
+              if (t.value === '-') {
+                result.push({ type: 'unary', value: 'neg' });
+              }
+              continue;
+            }
+          }
+          result.push(t);
+        }
+        return result;
+      }
+
+      /* ============================================================
+         Shunting-yard → RPN
+         ============================================================ */
+      function toRPN(tokens) {
+        const output = [];
+        const stack = [];
+
+        const prec = { '+': 1, '-': 1, '*': 2, '/': 2, 'neg': 3, '^': 4 };
+        const rightAssoc = { '^': true, 'neg': true };
+
+        for (const t of tokens) {
+          if (t.type === 'number') {
+            output.push(t);
+          } else if (t.type === 'func') {
+            stack.push(t);
+          } else if (t.type === 'op' || t.type === 'unary') {
+            const op = t.type === 'unary' ? 'neg' : t.value;
+
+            while (stack.length > 0) {
+              const top = stack[stack.length - 1];
+
+              if (top.type === 'func') {
+                output.push(stack.pop());
+                continue;
+              }
+
+              if (top.type === 'op' || top.type === 'unary') {
+                const topOp = top.type === 'unary' ? 'neg' : top.value;
+                const shouldPop = rightAssoc[op]
+                  ? prec[topOp] > prec[op]
+                  : prec[topOp] >= prec[op];
+
+                if (shouldPop) {
+                  output.push(stack.pop());
+                  continue;
+                }
+              }
+              break;
+            }
+
+            stack.push(t);
+          } else if (t.type === 'lparen') {
+            stack.push(t);
+          } else if (t.type === 'rparen') {
+            while (stack.length > 0 && stack[stack.length - 1].type !== 'lparen') {
+              output.push(stack.pop());
+            }
+            if (stack.length === 0) throw new Error('Mismatched parentheses');
+            stack.pop();
+            if (stack.length > 0 && stack[stack.length - 1].type === 'func') {
+              output.push(stack.pop());
+            }
+          }
+        }
+
+        while (stack.length > 0) {
+          const t = stack.pop();
+          if (t.type === 'lparen') throw new Error('Mismatched parentheses');
+          output.push(t);
+        }
+
+        return output;
+      }
+
+      /* ============================================================
+         RPN evaluator
+         ============================================================ */
+      function evalRPN(rpn, angleMode) {
+        const stack = [];
+        const toRad = angleMode === 'DEG' ? Math.PI / 180 : 1;
+
+        for (const t of rpn) {
+          if (t.type === 'number') {
+            stack.push(t.value);
+            continue;
+          }
+
+          if (t.type === 'func') {
+            const x = stack.pop();
+            if (x === undefined) throw new Error('Invalid expression');
+
+            let result;
+            switch (t.value) {
+              case 'sin': result = Math.sin(x * toRad); break;
+              case 'cos': result = Math.cos(x * toRad); break;
+              case 'tan': {
+                const rad = x * toRad;
+                const c = Math.cos(rad);
+                if (Math.abs(c) < 1e-14) throw new Error('Undefined');
+                result = Math.sin(rad) / c;
+                break;
+              }
+              case 'log':
+                if (x <= 0) throw new Error('Invalid input');
+                result = Math.log10(x);
+                break;
+              case 'ln':
+                if (x <= 0) throw new Error('Invalid input');
+                result = Math.log(x);
+                break;
+              case 'sqrt':
+                if (x < 0) throw new Error('Invalid input');
+                result = Math.sqrt(x);
+                break;
+              default:
+                throw new Error('Unknown function');
+            }
+            if (!Number.isFinite(result)) throw new Error('Invalid result');
+            stack.push(result);
+            continue;
+          }
+
+          if (t.type === 'unary' || t.type === 'op') {
+            const op = t.type === 'unary' ? 'neg' : t.value;
+
+            if (op === 'neg') {
+              const x = stack.pop();
+              if (x === undefined) throw new Error('Invalid expression');
+              stack.push(-x);
+              continue;
+            }
+
+            const b = stack.pop();
+            const a = stack.pop();
+            if (a === undefined || b === undefined) {
+              throw new Error('Invalid expression');
+            }
+
+            let result;
+            switch (op) {
+              case '+': result = a + b; break;
+              case '-': result = a - b; break;
+              case '*': result = a * b; break;
+              case '/':
+                if (b === 0) throw new Error('Cannot divide by zero');
+                result = a / b;
+                break;
+              case '^': result = Math.pow(a, b); break;
+              default: throw new Error('Unknown operator');
+            }
+
+            if (!Number.isFinite(result)) throw new Error('Result is too large');
+            stack.push(result);
+          }
+        }
+
+        if (stack.length !== 1) throw new Error('Invalid expression');
+        return stack[0];
+      }
+
+      /* ============================================================
+         High-level evaluation
+         ============================================================ */
+      function evaluate(exprStr, angleMode) {
+        return evalRPN(toRPN(tokenize(exprStr)), angleMode);
+      }
+
+      function autoClose(exprStr) {
+        const open = (exprStr.match(/\(/g) || []).length;
+        const close = (exprStr.match(/\)/g) || []).length;
+        if (close > open) return null;
+        return exprStr + ')'.repeat(open - close);
+      }
+
+      function computePreview() {
+        if (!state.expr) return null;
+
+        // Only preview when an operation is present
+        if (
+          !/[+\-*/^()πe]/.test(state.expr) &&
+          !/(sin|cos|tan|log|ln|sqrt)/.test(state.expr)
+        ) {
+          return null;
+        }
+
+        const full = autoClose(state.expr);
+        if (full === null) return null;
+
+        const stripped = full.replace(/\)+$/, '');
+        const lastChar = stripped[stripped.length - 1];
+        if ('+-*/^('.includes(lastChar)) return null;
+
+        try {
+          const value = evaluate(full, state.angleMode);
+          if (!Number.isFinite(value)) return null;
+          return formatNumberForDisplay(value);
+        } catch {
+          return null;
+        }
       }
 
       /* ============================================================
          Input actions
          ============================================================ */
-      function inputDigit(value) {
+      function inputDigit(d) {
+        ensureNoError();
+
+        if (state.justEvaluated) {
+          state.expr = '';
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+        }
+
+        const numberMatch = state.expr.match(/[\d.]+$/);
+
+        if (numberMatch) {
+          const num = numberMatch[0];
+
+          if (d === '.') {
+            if (num.includes('.')) return;
+            state.expr += '.';
+          } else {
+            if (num === '0') {
+              state.expr = state.expr.slice(0, -1) + d;
+            } else {
+              if (num.replace('.', '').length >= MAX_INPUT_DIGITS) return;
+              state.expr += d;
+            }
+          }
+        } else {
+          const last = state.expr[state.expr.length - 1] || '';
+          if (last === ')' || last === 'π' || last === 'e') {
+            state.expr += '*';
+          }
+          state.expr += d === '.' ? '0.' : d;
+        }
+
+        render();
+      }
+
+      function inputOperator(op) {
         if (state.error) {
           resetState();
+          render();
+          return;
         }
 
-        state.lastExpression = '';
-        state.repeatOperator = null;
-        state.repeatOperand = null;
-        state.lastResult = null;
+        if (state.justEvaluated) {
+          state.expr = String(state.resultValue);
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+        }
 
-        if (state.overwrite) {
-          state.current = value === '.' ? '0.' : value;
-          state.overwrite = false;
-        } else if (value === '.') {
-          if (!state.current.includes('.')) {
-            state.current += '.';
-          }
-        } else {
-          if (state.current === '-0') {
-            state.current = '-' + value;
-          } else if (state.current === '0') {
-            state.current = value;
+        if (state.expr === '') {
+          if (op === '-') state.expr = '-';
+          render();
+          return;
+        }
+
+        const last = state.expr[state.expr.length - 1];
+
+        if (last === '(') {
+          if (op === '-') state.expr += '-';
+          render();
+          return;
+        }
+
+        if ('+-*/^'.includes(last)) {
+          const beforeLast = state.expr[state.expr.length - 2] || '';
+
+          if (last === '-' && '+-*/^'.includes(beforeLast)) {
+            // Unary minus pattern e.g. "*-"
+            state.expr =
+              op === '-'
+                ? state.expr.slice(0, -2) + '-'
+                : state.expr.slice(0, -2) + op;
+          } else if (op === '-' && last !== '-') {
+            state.expr += '-';
           } else {
-            const digitCount = state.current.replace(/\D/g, '').length;
-
-            if (digitCount >= MAX_INPUT_DIGITS) {
-              return;
-            }
-
-            state.current += value;
-          }
-        }
-
-        state.operandEntered = true;
-        render();
-      }
-
-      function chooseOperator(operator) {
-        if (state.error) {
-          return;
-        }
-
-        state.lastExpression = '';
-        state.repeatOperator = null;
-        state.repeatOperand = null;
-        state.lastResult = null;
-
-        const currentValue = Number(state.current);
-
-        if (!Number.isFinite(currentValue)) {
-          setError('Invalid number');
-          return;
-        }
-
-        if (state.operator !== null && state.accumulator !== null) {
-          if (state.operandEntered) {
-            const result = compute(state.accumulator, currentValue, state.operator);
-
-            if (!result.ok) {
-              setError(result.reason);
-              return;
-            }
-
-            state.accumulator = result.value;
-            state.current = numberToString(result.value);
-            state.operandEntered = false;
+            state.expr = state.expr.slice(0, -1) + op;
           }
         } else {
-          state.accumulator = currentValue;
+          state.expr += op;
         }
-
-        state.operator = operator;
-        state.overwrite = true;
-        state.operandEntered = false;
 
         render();
       }
 
-      function calculate() {
-        if (state.error) {
-          return;
+      function inputFunction(name) {
+        ensureNoError();
+
+        if (state.justEvaluated) {
+          state.expr = '';
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
         }
 
-        state.lastExpression = '';
+        const last = state.expr[state.expr.length - 1] || '';
+        if (last === ')' || last === 'π' || last === 'e' || /[\d.]/.test(last)) {
+          state.expr += '*';
+        }
 
-        if (state.operator !== null && state.accumulator !== null) {
-          const a = state.accumulator;
-          const b = Number(state.current);
-          const operator = state.operator;
-          const result = compute(a, b, operator);
+        state.expr += name + '(';
+        render();
+      }
 
-          if (!result.ok) {
-            setError(result.reason);
-            return;
-          }
+      function inputConstant(c) {
+        ensureNoError();
 
-          state.lastExpression =
-            formatNumber(numberToString(a)) +
-            ' ' +
-            SYMBOLS[operator] +
-            ' ' +
-            formatNumber(numberToString(b)) +
-            ' =';
+        if (state.justEvaluated) {
+          state.expr = '';
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+        }
 
-          state.current = numberToString(result.value);
-          state.lastResult = result.value;
-          state.repeatOperator = operator;
-          state.repeatOperand = b;
-          state.accumulator = null;
-          state.operator = null;
-          state.overwrite = true;
-          state.operandEntered = false;
+        const last = state.expr[state.expr.length - 1] || '';
+        if (last === ')' || last === 'π' || last === 'e' || /[\d.]/.test(last)) {
+          state.expr += '*';
+        }
 
+        state.expr += c;
+        render();
+      }
+
+      function inputParenLeft() {
+        ensureNoError();
+
+        if (state.justEvaluated) {
+          state.expr = '';
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+        }
+
+        const last = state.expr[state.expr.length - 1] || '';
+        if (last === ')' || last === 'π' || last === 'e' || /[\d.]/.test(last)) {
+          state.expr += '*';
+        }
+
+        state.expr += '(';
+        render();
+      }
+
+      function inputParenRight() {
+        if (state.error || state.justEvaluated || !state.expr) return;
+
+        const last = state.expr[state.expr.length - 1];
+        if ('+-*/^('.includes(last)) return;
+
+        const open = (state.expr.match(/\(/g) || []).length;
+        const close = (state.expr.match(/\)/g) || []).length;
+
+        if (open > close) {
+          state.expr += ')';
+          render();
+        }
+      }
+
+      function inputPower() {
+        ensureNoError();
+
+        if (state.justEvaluated) {
+          state.expr = String(state.resultValue);
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+        }
+
+        if (!state.expr) return;
+
+        const last = state.expr[state.expr.length - 1];
+        if ('+-*/^('.includes(last)) return;
+
+        state.expr += '^';
+        render();
+      }
+
+      function equals() {
+        if (state.error || state.justEvaluated || !state.expr) return;
+
+        const stripped = state.expr.replace(/\)+$/, '');
+        const lastChar = stripped[stripped.length - 1];
+        if ('+-*/^('.includes(lastChar)) return;
+
+        const full = autoClose(state.expr);
+        if (full === null) {
+          state.error = 'Mismatched parentheses';
           render();
           return;
         }
 
-        if (
-          state.repeatOperator !== null &&
-          state.lastResult !== null &&
-          state.overwrite
-        ) {
-          const a = state.lastResult;
-          const b = state.repeatOperand;
-          const operator = state.repeatOperator;
-          const result = compute(a, b, operator);
+        try {
+          const value = evaluate(full, state.angleMode);
+          if (!Number.isFinite(value)) throw new Error('Invalid result');
 
-          if (!result.ok) {
-            setError(result.reason);
-            return;
-          }
-
-          state.lastExpression =
-            formatNumber(numberToString(a)) +
-            ' ' +
-            SYMBOLS[operator] +
-            ' ' +
-            formatNumber(numberToString(b)) +
-            ' =';
-
-          state.current = numberToString(result.value);
-          state.lastResult = result.value;
-          state.overwrite = true;
-          state.operandEntered = false;
-
-          render();
+          state.lastExpression = formatExpression(full) + ' =';
+          state.expr = full;
+          state.resultValue = value;
+          state.resultStr = formatNumberForDisplay(value);
+          state.justEvaluated = true;
+          state.error = null;
+        } catch (err) {
+          state.error = err.message || 'Invalid expression';
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
         }
+
+        render();
       }
 
       function clearAll() {
@@ -890,150 +1281,198 @@
         render();
       }
 
-      function removeLast() {
-        if (state.error) {
-          clearAll();
-          return;
-        }
+      function backspace() {
+        if (state.error) { clearAll(); return; }
 
-        state.lastExpression = '';
-        state.repeatOperator = null;
-        state.repeatOperand = null;
-        state.lastResult = null;
-
-        if (state.overwrite) {
-          state.current = '0';
-          state.overwrite = false;
-          state.operandEntered = state.operator !== null;
-        } else {
-          let nextValue = state.current.slice(0, -1);
-
-          if (nextValue === '' || nextValue === '-') {
-            nextValue = '0';
-          }
-
-          state.current = nextValue;
-          state.operandEntered = true;
-        }
-
-        render();
-      }
-
-      function percent() {
-        if (state.error) {
-          return;
-        }
-
-        // Percent only applies to an entered right-hand operand while pending.
-        if (state.operator !== null && !state.operandEntered) {
-          return;
-        }
-
-        const currentValue = Number(state.current);
-
-        if (!Number.isFinite(currentValue)) {
-          setError('Invalid number');
-          return;
-        }
-
-        let value;
-
-        if (state.operator !== null && state.accumulator !== null) {
-          if (state.operator === '+' || state.operator === '-') {
-            value = state.accumulator * (currentValue / 100);
-          } else {
-            value = currentValue / 100;
-          }
-        } else {
-          value = currentValue / 100;
-        }
-
-        state.current = numberToString(normalize(value));
-        state.overwrite = true;
-        state.operandEntered = state.operator !== null;
-        state.lastExpression = '';
-        state.repeatOperator = null;
-        state.repeatOperand = null;
-        state.lastResult = null;
-
-        render();
-      }
-
-      function toggleSign() {
-        if (state.error) {
-          return;
-        }
-
-        state.lastExpression = '';
-        state.repeatOperator = null;
-        state.repeatOperand = null;
-        state.lastResult = null;
-
-        // Awaiting a right-hand operand: begin a negative entry.
-        if (state.overwrite && state.operator !== null && !state.operandEntered) {
-          state.current = '-0';
-          state.overwrite = false;
-          state.operandEntered = true;
+        if (state.justEvaluated) {
+          resetState();
           render();
           return;
         }
 
-        if (state.current !== '0') {
-          state.current = state.current.startsWith('-')
-            ? state.current.slice(1)
-            : '-' + state.current;
+        if (!state.expr) return;
+
+        for (const fn of [...FUNC_PREFIXES].sort((a, b) => b.length - a.length)) {
+          if (state.expr.endsWith(fn + '(')) {
+            state.expr = state.expr.slice(0, -(fn.length + 1));
+            render();
+            return;
+          }
         }
 
-        if (state.operator === null) {
-          // Keep overwrite semantics: after a result, the next digit replaces it.
+        state.expr = state.expr.slice(0, -1);
+        render();
+      }
+
+      function percent() {
+        ensureNoError();
+
+        if (state.justEvaluated) {
+          state.expr = String(state.resultValue);
+          state.resultValue = null;
+          state.resultStr = '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+        }
+
+        if (!state.expr) return;
+
+        const match = state.expr.match(/[\d.]+$/);
+        if (!match) return;
+
+        const numStr = match[0];
+        const numValue = parseFloat(numStr);
+        if (!Number.isFinite(numValue)) return;
+
+        const before = state.expr.slice(0, state.expr.length - numStr.length);
+        const opMatch = before.match(/([+\-*/^(])$/);
+
+        let newValue = numValue / 100;
+
+        if (opMatch && (opMatch[1] === '+' || opMatch[1] === '-')) {
+          try {
+            const leftExpr = before.slice(0, -1);
+            if (leftExpr) {
+              const leftValue = evaluate(autoClose(leftExpr), state.angleMode);
+              newValue = leftValue * numValue / 100;
+            }
+          } catch {
+            // Keep simple divide-by-100 fallback
+          }
+        }
+
+        state.expr = before + String(Number(newValue.toPrecision(PRECISION)));
+        render();
+      }
+
+      function toggleSign() {
+        ensureNoError();
+
+        if (state.justEvaluated) {
+          if (state.resultValue !== null) {
+            const negated = -state.resultValue;
+            state.expr = String(negated);
+            state.resultValue = negated;
+            state.resultStr = formatNumberForDisplay(negated);
+          }
+          render();
+          return;
+        }
+
+        if (!state.expr) {
+          state.expr = '-';
+          render();
+          return;
+        }
+
+        const match = state.expr.match(/[\d.]+$/);
+
+        if (!match) {
+          const last = state.expr[state.expr.length - 1];
+          if ('+-*/^('.includes(last)) {
+            state.expr += '-';
+            render();
+          }
+          return;
+        }
+
+        const numStr = match[0];
+        const before = state.expr.slice(0, state.expr.length - numStr.length);
+        const lastChar = before.slice(-1);
+
+        if (lastChar === '-') {
+          const beforeMinus = before.slice(0, -1);
+          const charBeforeMinus = beforeMinus.slice(-1);
+
+          if (charBeforeMinus === '' || '+-*/^('.includes(charBeforeMinus)) {
+            state.expr = beforeMinus + numStr;
+          } else {
+            state.expr = beforeMinus + '+' + numStr;
+          }
+        } else if (lastChar === '+') {
+          state.expr = before.slice(0, -1) + '-' + numStr;
         } else {
-          state.overwrite = false;
-          state.operandEntered = true;
+          state.expr = before + '-' + numStr;
+        }
+
+        render();
+      }
+
+      function toggleAngleMode() {
+        state.angleMode = state.angleMode === 'DEG' ? 'RAD' : 'DEG';
+
+        if (angleButton) {
+          angleButton.textContent = state.angleMode;
+          angleButton.setAttribute(
+            'aria-label',
+            `Angle mode: ${state.angleMode}. Click to toggle.`
+          );
         }
 
         render();
       }
 
       /* ============================================================
-         Rendering
+         Render
          ============================================================ */
       function render() {
-        const isError = Boolean(state.error);
-        const mainText = isError ? 'Error' : formatNumber(state.current);
-
-        resultEl.textContent = mainText;
-        resultEl.classList.toggle('is-error', isError);
-        resultEl.dataset.size = getDisplaySize(mainText);
-
-        let expressionText = '';
-
-        if (isError) {
-          expressionText = state.error;
-        } else if (state.operator !== null && state.accumulator !== null) {
-          const left = formatNumber(numberToString(state.accumulator));
-          const right = state.operandEntered
-            ? ' ' + formatNumber(state.current)
-            : '';
-
-          expressionText = left + ' ' + SYMBOLS[state.operator] + right;
-        } else {
-          expressionText = state.lastExpression;
+        if (state.error) {
+          resultEl.textContent = 'Error';
+          resultEl.classList.add('is-error');
+          resultEl.dataset.size = 'lg';
+          expressionEl.textContent = state.error;
+          updateOperatorStates();
+          copyBtn.disabled = true;
+          return;
         }
 
-        expressionEl.textContent = expressionText;
+        resultEl.classList.remove('is-error');
+        copyBtn.disabled = false;
 
-        operatorButtons.forEach((button) => {
-          const isSelected =
-            !isError && state.operator === button.dataset.operator;
+        if (state.justEvaluated && state.resultStr) {
+          resultEl.textContent = state.resultStr;
+          resultEl.dataset.size = getDisplaySize(state.resultStr);
+          expressionEl.textContent = state.lastExpression;
+        } else if (state.expr) {
+          const displayText = formatExpression(state.expr);
+          resultEl.textContent = displayText || '0';
+          resultEl.dataset.size = getDisplaySize(displayText);
 
-          button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+          const preview = computePreview();
+          expressionEl.textContent = preview ? '= ' + preview : '';
+        } else {
+          resultEl.textContent = '0';
+          resultEl.dataset.size = 'lg';
+          expressionEl.textContent = '';
+        }
+
+        updateOperatorStates();
+      }
+
+      function updateOperatorStates() {
+        const lastChar = state.expr ? state.expr[state.expr.length - 1] : '';
+        operatorButtons.forEach((btn) => {
+          const op = btn.dataset.operator;
+          btn.setAttribute('aria-pressed', op === lastChar ? 'true' : 'false');
         });
-
-        copyBtn.disabled = isError;
       }
 
       /* ============================================================
-         Copy result
+         Mode
+         ============================================================ */
+      function setMode(mode) {
+        state.mode = mode;
+        calculator.classList.toggle('scientific', mode === 'scientific');
+
+        modeButtons.forEach((btn) => {
+          const active = btn.dataset.mode === mode;
+          btn.classList.toggle('is-active', active);
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+      }
+
+      /* ============================================================
+         Copy
          ============================================================ */
       function indicateCopied() {
         copyBtn.classList.add('is-copied');
@@ -1042,7 +1481,6 @@
         copyStatus.textContent = 'Result copied to clipboard';
 
         window.clearTimeout(copiedTimer);
-
         copiedTimer = window.setTimeout(() => {
           copyBtn.classList.remove('is-copied');
           copyBtn.setAttribute('aria-label', 'Copy result');
@@ -1052,35 +1490,35 @@
       }
 
       async function copyResult() {
-        if (state.error) {
-          return;
-        }
+        if (state.error) return;
 
-        const text = state.current;
+        let text;
+        if (state.justEvaluated && state.resultValue !== null) {
+          text = String(state.resultValue);
+        } else if (state.expr) {
+          text = state.expr;
+        } else {
+          text = '0';
+        }
 
         try {
           if (navigator.clipboard && window.isSecureContext) {
             await navigator.clipboard.writeText(text);
           } else {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.setAttribute('readonly', '');
-            textarea.style.position = 'fixed';
-            textarea.style.top = '-1000px';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-
-            const successful = document.execCommand('copy');
-            textarea.remove();
-
-            if (!successful) {
-              throw new Error('Copy command failed');
-            }
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            ta.remove();
+            if (!ok) throw new Error('Copy failed');
           }
-
           indicateCopied();
-        } catch (error) {
+        } catch {
           copyStatus.textContent = 'Copy failed';
         }
       }
@@ -1090,28 +1528,23 @@
          ============================================================ */
       keypad.addEventListener('click', (event) => {
         const button = event.target.closest('button[data-action]');
+        if (!button) return;
 
-        if (!button) {
-          return;
-        }
-
-        const action = button.dataset.action;
-
-        switch (action) {
+        switch (button.dataset.action) {
           case 'digit':
             inputDigit(button.dataset.digit);
             break;
           case 'operator':
-            chooseOperator(button.dataset.operator);
+            inputOperator(button.dataset.operator);
             break;
           case 'equals':
-            calculate();
+            equals();
             break;
           case 'clear':
             clearAll();
             break;
           case 'delete':
-            removeLast();
+            backspace();
             break;
           case 'percent':
             percent();
@@ -1119,44 +1552,50 @@
           case 'sign':
             toggleSign();
             break;
+          case 'func':
+            inputFunction(button.dataset.func);
+            break;
+          case 'constant':
+            inputConstant(button.dataset.constant);
+            break;
+          case 'paren':
+            if (button.dataset.paren === '(') inputParenLeft();
+            else inputParenRight();
+            break;
+          case 'power':
+            inputPower();
+            break;
+          case 'angle':
+            toggleAngleMode();
+            break;
           default:
             break;
         }
       });
 
+      modeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => setMode(btn.dataset.mode));
+      });
+
       copyBtn.addEventListener('click', copyResult);
 
-      // Blur mouse-activated buttons so global Enter/Backspace shortcuts work
-      // immediately after clicking, without breaking keyboard activation.
+      // Blur mouse-activated buttons so global keyboard shortcuts keep working.
       document.addEventListener('pointerup', (event) => {
-        if (event.pointerType !== 'mouse') {
-          return;
-        }
-
+        if (event.pointerType !== 'mouse') return;
         const target = event.target;
-
         if (target instanceof Element) {
           const button = target.closest('button');
-
-          if (button) {
-            button.blur();
-          }
+          if (button) button.blur();
         }
       });
 
       document.addEventListener('keydown', (event) => {
-        if (event.defaultPrevented) {
-          return;
-        }
-
-        if (event.altKey || event.ctrlKey || event.metaKey) {
-          return;
-        }
+        if (event.defaultPrevented) return;
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
 
         const key = event.key;
         const target = event.target;
 
-        // Let focused buttons handle Enter/Space natively.
         if (
           target instanceof Element &&
           target.closest('button') &&
@@ -1180,30 +1619,42 @@
         switch (key) {
           case '+':
             event.preventDefault();
-            chooseOperator('+');
+            inputOperator('+');
             break;
           case '-':
             event.preventDefault();
-            chooseOperator('-');
+            inputOperator('-');
             break;
           case '*':
           case 'x':
           case 'X':
             event.preventDefault();
-            chooseOperator('*');
+            inputOperator('*');
             break;
           case '/':
             event.preventDefault();
-            chooseOperator('/');
+            inputOperator('/');
+            break;
+          case '^':
+            event.preventDefault();
+            inputPower();
+            break;
+          case '(':
+            event.preventDefault();
+            inputParenLeft();
+            break;
+          case ')':
+            event.preventDefault();
+            inputParenRight();
             break;
           case 'Enter':
           case '=':
             event.preventDefault();
-            calculate();
+            equals();
             break;
           case 'Backspace':
             event.preventDefault();
-            removeLast();
+            backspace();
             break;
           case 'Delete':
           case 'Escape':
@@ -1219,14 +1670,35 @@
             event.preventDefault();
             clearAll();
             break;
+          case 's':
+          case 'S':
+            event.preventDefault();
+            inputFunction('sin');
+            break;
+          case 'o':
+          case 'O':
+            event.preventDefault();
+            inputFunction('cos');
+            break;
+          case 't':
+          case 'T':
+            event.preventDefault();
+            inputFunction('tan');
+            break;
+          case 'p':
+          case 'P':
+            event.preventDefault();
+            inputConstant('π');
+            break;
           default:
             break;
         }
       });
 
       /* ============================================================
-         Initial render
+         Init
          ============================================================ */
+      setMode('basic');
       render();
     })();
   </script>
