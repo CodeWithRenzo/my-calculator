@@ -1080,6 +1080,9 @@
         '+': '+', '-': '−', '*': '×', '/': '÷', '^': '^'
       });
 
+      // Trailing numeric literal, including scientific notation from results.
+      const TRAILING_NUMBER = /(\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       /* ============================================================
@@ -1431,7 +1434,7 @@
       }
 
       /* ============================================================
-         Tokenizer (supports scientific notation, factorial)
+         Tokenizer (scientific notation, factorial, implicit ×)
          ============================================================ */
       function tokenize(str) {
         const tokens = [];
@@ -1493,7 +1496,25 @@
           throw new Error('Invalid character');
         }
 
-        return resolveUnary(tokens);
+        return resolveUnary(insertImplicitMultiplication(tokens));
+      }
+
+      // `2π`, `2(3+1)`, `)(`, `2sin(3)` → insert an explicit multiply token.
+      function insertImplicitMultiplication(tokens) {
+        const endsValue = (t) =>
+          t && (t.type === 'number' || t.type === 'rparen' || t.type === 'postfix');
+        const startsValue = (t) =>
+          t && (t.type === 'number' || t.type === 'func' || t.type === 'lparen');
+
+        const out = [];
+        for (const t of tokens) {
+          const prev = out[out.length - 1];
+          if (endsValue(prev) && startsValue(t)) {
+            out.push({ type: 'op', value: '*' });
+          }
+          out.push(t);
+        }
+        return out;
       }
 
       function resolveUnary(tokens) {
@@ -2094,7 +2115,7 @@
 
         if (!state.expr) return;
 
-        const match = state.expr.match(/[\d.]+$/);
+        const match = state.expr.match(TRAILING_NUMBER);
         if (!match) return;
 
         const numStr = match[0];
@@ -2118,6 +2139,8 @@
           }
         }
 
+        if (!Number.isFinite(newValue)) return;
+
         state.expr = before + toPlainString(newValue);
         render();
       }
@@ -2132,7 +2155,7 @@
           return;
         }
 
-        const match = state.expr.match(/[\d.]+$/);
+        const match = state.expr.match(TRAILING_NUMBER);
 
         if (!match) {
           const last = state.expr[state.expr.length - 1];
